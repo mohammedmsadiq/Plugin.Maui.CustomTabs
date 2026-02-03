@@ -3,6 +3,7 @@ using Microsoft.Maui.Devices;
 using Plugin.Maui.CustomTabs.Models;
 using Plugin.Maui.CustomTabs.Pages;
 using Plugin.Maui.CustomTabs.ViewModels;
+using System.Diagnostics;
 
 namespace CustomTabs.Sample.Pages;
 
@@ -17,10 +18,18 @@ public sealed class MainTabsPage : CustomTabsHostPage
     public MainTabsPage(SimpleLocalizationService localizationService)
         : base(CreateViewModel(localizationService), localizationService)
     {
+        Debug.WriteLine("[Sample] MainTabsPage constructor invoked.");
+    }
+
+    protected override void OnAppearing()
+    {
+        base.OnAppearing();
+        Debug.WriteLine("[Sample] MainTabsPage OnAppearing.");
     }
 
     private static CustomTabsViewModel CreateViewModel(SimpleLocalizationService localizationService)
     {
+        Debug.WriteLine("[Sample] MainTabsPage CreateViewModel starting.");
         var options = new CustomTabsOptions
         {
             BackgroundColor = Color.FromArgb("#071A3A"),
@@ -32,7 +41,8 @@ public sealed class MainTabsPage : CustomTabsHostPage
             ShowText = true,
             EnableAnimations = true,
             EnableHaptics = false,
-            UnderlineMargin = new Thickness(0, 8, 0, 0)
+            UnderlineMargin = new Thickness(0, 8, 0, 0),
+            ReselectBehavior = TabReselectBehavior.PopToRoot | TabReselectBehavior.ScrollToTop
         };
 
         if (DeviceInfo.Platform == DevicePlatform.Android)
@@ -52,28 +62,38 @@ public sealed class MainTabsPage : CustomTabsHostPage
             new CustomTabItem("home", "H", () => new HomePage())
             {
                 Title = "Home",
-                TitleProvider = () => localizationService.Translate("Home")
+                TitleProvider = () => localizationService.Translate("Home"),
+                AutomationId = "tab-home",
+                AutomationName = "Home Tab"
             },
             new CustomTabItem("search", "S", () => new SearchPage())
             {
                 Title = "Search",
-                TitleProvider = () => localizationService.Translate("Search")
+                TitleProvider = () => localizationService.Translate("Search"),
+                AutomationId = "tab-search",
+                AutomationName = "Search Tab"
             },
             new CustomTabItem("messages", "M", () => new MessagesPage(messagesBadge))
             {
                 Title = "Messages",
                 TitleProvider = () => localizationService.Translate("Messages"),
-                Badge = messagesBadge
+                Badge = messagesBadge,
+                AutomationId = "tab-messages",
+                AutomationName = "Messages Tab"
             },
             new CustomTabItem("profile", "P", () => new ProfilePage())
             {
                 Title = "Profile",
-                TitleProvider = () => localizationService.Translate("Profile")
+                TitleProvider = () => localizationService.Translate("Profile"),
+                AutomationId = "tab-profile",
+                AutomationName = "Profile Tab"
             },
             new CustomTabItem("settings", "T", () => new SettingsPage(options, localizationService))
             {
                 Title = "Settings",
-                TitleProvider = () => localizationService.Translate("Settings")
+                TitleProvider = () => localizationService.Translate("Settings"),
+                AutomationId = "tab-settings",
+                AutomationName = "Settings Tab"
             }
         };
 

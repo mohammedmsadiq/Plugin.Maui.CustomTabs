@@ -14,3 +14,18 @@ Yes. Supply `IconProvider` on `CustomTabItem`. If it is set, the bar renders the
 
 ## Why are my glyphs not showing?
 Provide a `FontFamily` in `CustomTabsOptions` if you use a custom icon font. Without it, the platform default font is used.
+
+## How do I select a tab programmatically?
+Bind to `SelectedTabKey` or `SelectedIndex` on `CustomTabsHostPage` (two-way), or call `SelectTabByKey`/`SelectTabByIndex` on the view model.
+
+## How do I block tab selection (auth gating)?
+Subscribe to `TabSelectionRequested` and set `Cancel = true`, or provide a `CanSelectTab` predicate.
+
+## How do I handle reselect (tap active tab)?
+Set `CustomTabsOptions.ReselectBehavior` (e.g., `PopToRoot`, `ScrollToTop`, `Command`). To support scroll-to-top, implement `ITabScrollToTop`.
+
+## How do I refresh an icon at runtime?
+Use `IconSource` for static icons or `IconProvider` for dynamic ones, then call `NotifyIconChanged()` on the tab item.
+
+## How do I make the tab bar scrollable?
+Set `TabLayoutMode` to `Scrollable`, or keep `Auto` and adjust `ScrollableThreshold`.

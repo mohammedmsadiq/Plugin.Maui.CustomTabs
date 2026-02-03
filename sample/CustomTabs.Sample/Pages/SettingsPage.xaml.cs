@@ -9,6 +9,7 @@ namespace CustomTabs.Sample.Pages;
 public partial class SettingsPage : ContentPage
 {
     private readonly SimpleLocalizationService _localization;
+    private bool _subscribed;
 
     /// <summary>
     /// Creates the settings page.
@@ -19,14 +20,20 @@ public partial class SettingsPage : ContentPage
         InitializeComponent();
         BindingContext = options;
 
-        _localization.LanguageChanged += OnLanguageChanged;
+        SubscribeLocalization();
         UpdateLanguageLabel();
+    }
+
+    protected override void OnAppearing()
+    {
+        base.OnAppearing();
+        SubscribeLocalization();
     }
 
     protected override void OnDisappearing()
     {
         base.OnDisappearing();
-        _localization.LanguageChanged -= OnLanguageChanged;
+        UnsubscribeLocalization();
     }
 
     private void OnEnglishClicked(object sender, EventArgs e)
@@ -42,6 +49,28 @@ public partial class SettingsPage : ContentPage
     private void OnLanguageChanged(object? sender, EventArgs e)
     {
         UpdateLanguageLabel();
+    }
+
+    private void SubscribeLocalization()
+    {
+        if (_subscribed)
+        {
+            return;
+        }
+
+        _localization.LanguageChanged += OnLanguageChanged;
+        _subscribed = true;
+    }
+
+    private void UnsubscribeLocalization()
+    {
+        if (!_subscribed)
+        {
+            return;
+        }
+
+        _localization.LanguageChanged -= OnLanguageChanged;
+        _subscribed = false;
     }
 
     private void UpdateLanguageLabel()

@@ -5,10 +5,12 @@
              Title="Home">
     <VerticalStackLayout Padding="24" Spacing="12">
         <Label Text="Home"
+               AutomationId="home-title"
                FontSize="28"
                FontAttributes="Bold" />
         <Label Text="Welcome to the custom tabs demo." />
         <Button Text="Push details"
+                AutomationId="home-push-details"
                 Clicked="OnPushDetailsClicked" />
     </VerticalStackLayout>
 </ContentPage>

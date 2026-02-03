@@ -1,6 +1,7 @@
 using System.Threading.Tasks;
 using Microsoft.Maui.Controls;
 using Microsoft.Maui.Devices;
+using Plugin.Maui.CustomTabs.Models;
 
 namespace Plugin.Maui.CustomTabs.Animations;
 
@@ -10,23 +11,23 @@ namespace Plugin.Maui.CustomTabs.Animations;
 public static class TabAnimations
 {
     /// <summary>
-    /// Animates the selected tab icon and underline.
+    /// Animates the selected tab icon and indicator.
     /// </summary>
-    public static async Task AnimateSelectionAsync(VisualElement? icon, VisualElement? underline, TimeSpan duration)
+    public static async Task AnimateSelectionAsync(
+        VisualElement? icon,
+        VisualElement? indicator,
+        TimeSpan duration,
+        TabSelectionAnimationStyle iconStyle,
+        TabSelectionAnimationStyle indicatorStyle)
     {
-        if (icon == null)
+        if (icon != null)
         {
-            return;
+            await AnimateElementAsync(icon, duration, iconStyle, 1.10);
         }
 
-        var halfDuration = (uint)Math.Max(1, duration.TotalMilliseconds / 2);
-        await icon.ScaleTo(1.10, halfDuration, Easing.CubicOut);
-        await icon.ScaleTo(1.0, halfDuration, Easing.CubicIn);
-
-        if (underline != null)
+        if (indicator != null)
         {
-            await underline.ScaleTo(1.05, halfDuration, Easing.CubicOut);
-            await underline.ScaleTo(1.0, halfDuration, Easing.CubicIn);
+            await AnimateElementAsync(indicator, duration, indicatorStyle, 1.05);
         }
     }
 
@@ -45,6 +46,31 @@ public static class TabAnimations
         catch
         {
             // Ignore haptic failures on unsupported platforms.
+        }
+    }
+
+    private static async Task AnimateElementAsync(VisualElement element, TimeSpan duration, TabSelectionAnimationStyle style, double scaleTarget)
+    {
+        if (style == TabSelectionAnimationStyle.None)
+        {
+            return;
+        }
+
+        var halfDuration = (uint)Math.Max(1, duration.TotalMilliseconds / 2);
+
+        switch (style)
+        {
+            case TabSelectionAnimationStyle.Scale:
+                await element.ScaleTo(scaleTarget, halfDuration, Easing.CubicOut);
+                await element.ScaleTo(1.0, halfDuration, Easing.CubicIn);
+                break;
+            case TabSelectionAnimationStyle.Fade:
+                await element.FadeTo(0.6, halfDuration, Easing.CubicOut);
+                await element.FadeTo(1.0, halfDuration, Easing.CubicIn);
+                break;
+            case TabSelectionAnimationStyle.None:
+            default:
+                break;
         }
     }
 }

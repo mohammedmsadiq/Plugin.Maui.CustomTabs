@@ -144,19 +144,110 @@ await NavigationService.NavigateAsync(target);
 | `EnableHaptics` | `bool` | `false` | Light haptic feedback on selection. |
 | `EnableAnimations` | `bool` | `true` | Enables icon + underline animations. |
 | `AnimationDuration` | `TimeSpan` | `160ms` | Duration for selection animations. |
+| `IconAnimationStyle` | `TabSelectionAnimationStyle` | `Scale` | Icon animation style (`None`, `Scale`, `Fade`). |
+| `IndicatorAnimationStyle` | `TabSelectionAnimationStyle` | `Scale` | Indicator animation style. |
 | `FontFamily` | `string?` | `null` | Optional icon/text font family. |
 | `RespectSafeArea` | `bool` | `true` on iOS | Keeps the bar above safe area. |
 | `IconSize` | `double` | `26` | Icon size in device units. |
 | `TextSize` | `double` | `12` | Label size in device units. |
 | `TabBarPadding` | `Thickness` | `0,10,0,16` | Inner padding of the tab bar. |
 | `TabBarOuterMargin` | `Thickness` | `0` | Outer margin for floating tab bars. |
+| `TabBarCornerRadius` | `CornerRadius` | `0` | Rounded corners for the tab bar container. |
+| `BorderColor` | `Color` | `Transparent` | Tab bar border color. |
+| `BorderThickness` | `double` | `0` | Tab bar border thickness. |
+| `TabBarShadow` | `Shadow?` | `null` | Optional shadow for the tab bar. |
+| `TabLayoutMode` | `TabLayoutMode` | `Auto` | `Fixed`, `Scrollable`, or `Auto` (uses `ScrollableThreshold`). |
+| `ScrollableThreshold` | `int` | `5` | Tab count that triggers auto scroll. |
+| `TabItemWidth` | `double` | `-1` | Fixed width for tab items (`-1` for auto). |
+| `TabItemMinWidth` | `double` | `0` | Minimum width for tab items. |
+| `TabItemTemplate` | `DataTemplate?` | `null` | Custom tab item template. |
 | `ShowUnderline` | `bool` | `true` | Toggle the underline indicator. |
 | `UnderlineHeight` | `double` | `2` | Height of the underline. |
 | `UnderlineMargin` | `Thickness` | `0,6,0,0` | Spacing between text and underline. |
+| `IndicatorWidth` | `double` | `-1` | Fixed indicator width (`-1` for auto). |
+| `IndicatorHorizontalOptions` | `LayoutOptions` | `Fill` | Horizontal alignment for the indicator. |
+| `IndicatorCornerRadius` | `float` | `0` | Corner radius for the indicator. |
 | `BadgeOffsetX` | `double` | `6` | Horizontal badge offset from the icon. |
 | `BadgeOffsetY` | `double` | `-4` | Vertical badge offset from the icon. |
+| `ReselectBehavior` | `TabReselectBehavior` | `None` | Reselect behavior for active tab taps. |
+| `EnableKeyboardNavigation` | `bool` | `true` | Enables arrow-key navigation on desktop. |
+| `NavigationPageFactory` | `Func<Page, NavigationPage>?` | `null` | Custom navigation page factory. |
+| `NavigationBarVisible` | `bool?` | `null` | Default nav bar visibility. |
+| `NavigationBarBackgroundColor` | `Color?` | `null` | Default nav bar background color. |
+| `NavigationBarTextColor` | `Color?` | `null` | Default nav bar text color. |
 
 All options are mutable at runtime. Any changes trigger UI updates.
+
+## Selection and gating
+
+The host page exposes two-way bindable selection properties:
+
+- `SelectedTabKey`
+- `SelectedIndex`
+
+You can observe or gate selection with:
+
+- `SelectedTabChanged`
+- `TabSelectionRequested` (set `Cancel = true` to block)
+- `CanSelectTab` predicate
+
+```csharp
+var page = (CustomTabsHostPage)CustomTabs.Create(tabs, "home", options);
+page.TabSelectionRequested += (_, args) =>
+{
+    if (args.Tab.Key == "settings" && !isLoggedIn)
+    {
+        args.Cancel = true;
+    }
+};
+
+page.SelectedTabKey = "search";
+```
+
+## Reselect behavior
+
+Enable one or more behaviors when the active tab is tapped again:
+
+```csharp
+options.ReselectBehavior = TabReselectBehavior.PopToRoot | TabReselectBehavior.ScrollToTop;
+
+tabs[0].ReselectCommand = new Command(() => logger.Log("Home reselected"));
+```
+
+To support `ScrollToTop`, implement `ITabScrollToTop` on the current page or its binding context.
+
+## Custom templates
+
+Set `options.TabItemTemplate` to fully customize the tab item UI. Your template should include a tap gesture that calls `SelectTabCommand` and passes the tab item as the parameter. If you want built-in animations, name the elements `IconContainer` and `Underline`.
+
+## Per-tab customization
+
+`CustomTabItem` supports per-tab overrides:
+
+- `IsEnabled`, `IsVisible`
+- `IconSource` or `IconProvider`
+- `SelectedTextColor`, `UnselectedTextColor`
+- `SelectedIconColor`, `UnselectedIconColor`
+- `IndicatorColor`
+- `NavigationPageFactory`, `NavigationBarVisible`, `NavigationBarBackgroundColor`, `NavigationBarTextColor`
+- `AutomationId`, `AutomationName`, `AutomationDescription`
+
+## Icon refresh
+
+Use `IconSource` for static images, or `IconProvider` for dynamic ones. Call `NotifyIconChanged()` to refresh icon bindings at runtime.
+
+## Badge customization
+
+`CustomTabBadge` now supports:
+
+- `Text`, `MaxCount`
+- `FontSize`, `MinWidth`, `MinHeight`, `CornerRadius`
+- `BorderColor`, `BorderThickness`
+- `DotSize`
+
+## Accessibility
+
+Set `AutomationId`, `AutomationName`, and `AutomationDescription` on each `CustomTabItem` to improve testing and screen reader output.
 
 ## Localization
 
@@ -191,7 +282,13 @@ public sealed class LocalizationService : ILocalizationRefreshService
 ## Badges
 
 ```csharp
-var badge = new CustomTabBadge { Count = 3 };
+var badge = new CustomTabBadge
+{
+    Count = 3,
+    MaxCount = 99,
+    BorderColor = Colors.White,
+    BorderThickness = 1
+};
 var tab = new CustomTabItem("messages", "M", () => new MessagesPage())
 {
     Title = "Messages",
@@ -199,6 +296,7 @@ var tab = new CustomTabItem("messages", "M", () => new MessagesPage())
 };
 
 badge.Count += 1; // updates instantly
+badge.Text = "New"; // overrides count display
 ```
 
 ## Animations and haptics
@@ -207,10 +305,17 @@ badge.Count += 1; // updates instantly
 options.EnableAnimations = true;
 options.EnableHaptics = true;
 options.AnimationDuration = TimeSpan.FromMilliseconds(160);
+options.IconAnimationStyle = TabSelectionAnimationStyle.Scale;
+options.IndicatorAnimationStyle = TabSelectionAnimationStyle.Fade;
 ```
 
 ## Safe area behavior
-When `RespectSafeArea` is enabled, the host page ensures the bar does not overlap the iOS home indicator. On Android, the bar relies on system insets and includes extra bottom padding by default.
+When `RespectSafeArea` is enabled, the host page ensures the bar does not overlap the iOS home indicator. On Android, it applies window inset padding (including gesture navigation and cutouts) to keep the bar visible in edge cases.
+
+## Testing
+
+- Unit tests live in `tests/Plugin.Maui.CustomTabs.Tests`.
+- UI tests live in `tests/Plugin.Maui.CustomTabs.UITests` and use Appium. Set `MAUI_APP_PATH`, `MAUI_PLATFORM`, and (optionally) `APPIUM_SERVER_URL`, `APPIUM_DEVICE_NAME`.
 
 ## FAQ
 See `src/Plugin.Maui.CustomTabs/Documentation/FAQ.md` for more details.

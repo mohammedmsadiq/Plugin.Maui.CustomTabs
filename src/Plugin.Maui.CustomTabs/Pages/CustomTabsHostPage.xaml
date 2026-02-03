@@ -6,10 +6,10 @@
              BackgroundColor="{Binding Options.BackgroundColor}">
     <Grid RowDefinitions="*,Auto">
         <ContentView Grid.Row="0"
-                     Content="{Binding SelectedPage}" />
-        <Grid x:Name="TabBarHost" Grid.Row="1">
-            <controls:CustomTabBarView x:Name="TabBar"
-                                       Margin="{Binding Options.TabBarOuterMargin}" />
+                     Content="{Binding SelectedContent}" />
+        <Grid Grid.Row="1">
+            <controls:CustomTabBarView Margin="{Binding Options.TabBarOuterMargin}"
+                                       ViewModel="{Binding}" />
         </Grid>
     </Grid>
 </ContentPage>

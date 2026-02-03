@@ -1,6 +1,8 @@
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using Microsoft.Maui.Controls;
 using Microsoft.Maui.Graphics;
+using MauiShadow = Microsoft.Maui.Controls.Shadow;
 
 namespace Plugin.Maui.CustomTabs.Models;
 
@@ -20,6 +22,8 @@ public sealed class CustomTabsOptions : INotifyPropertyChanged
     private bool _enableHaptics;
     private bool _enableAnimations = true;
     private TimeSpan _animationDuration = TimeSpan.FromMilliseconds(160);
+    private TabSelectionAnimationStyle _iconAnimationStyle = TabSelectionAnimationStyle.Scale;
+    private TabSelectionAnimationStyle _indicatorAnimationStyle = TabSelectionAnimationStyle.Scale;
     private string? _fontFamily;
     private bool _respectSafeArea = true;
     private double _iconSize = 26;
@@ -31,6 +35,24 @@ public sealed class CustomTabsOptions : INotifyPropertyChanged
     private Thickness _underlineMargin = new Thickness(0, 6, 0, 0);
     private double _badgeOffsetX = 6;
     private double _badgeOffsetY = -4;
+    private TabReselectBehavior _reselectBehavior = TabReselectBehavior.None;
+    private DataTemplate? _tabItemTemplate;
+    private TabLayoutMode _tabLayoutMode = TabLayoutMode.Auto;
+    private int _scrollableThreshold = 5;
+    private double _tabItemWidth = -1;
+    private double _tabItemMinWidth;
+    private CornerRadius _tabBarCornerRadius;
+    private Color _borderColor = Colors.Transparent;
+    private double _borderThickness;
+    private MauiShadow? _tabBarShadow;
+    private double _indicatorWidth = -1;
+    private LayoutOptions _indicatorHorizontalOptions = LayoutOptions.Fill;
+    private float _indicatorCornerRadius;
+    private bool _enableKeyboardNavigation = true;
+    private Func<Page, NavigationPage>? _navigationPageFactory;
+    private bool? _navigationBarVisible;
+    private Color? _navigationBarBackgroundColor;
+    private Color? _navigationBarTextColor;
 
     /// <summary>
     /// Raised when a property value changes.
@@ -137,6 +159,24 @@ public sealed class CustomTabsOptions : INotifyPropertyChanged
     }
 
     /// <summary>
+    /// Animation style used for icons.
+    /// </summary>
+    public TabSelectionAnimationStyle IconAnimationStyle
+    {
+        get => _iconAnimationStyle;
+        set => SetProperty(ref _iconAnimationStyle, value);
+    }
+
+    /// <summary>
+    /// Animation style used for the indicator.
+    /// </summary>
+    public TabSelectionAnimationStyle IndicatorAnimationStyle
+    {
+        get => _indicatorAnimationStyle;
+        set => SetProperty(ref _indicatorAnimationStyle, value);
+    }
+
+    /// <summary>
     /// Optional font family for labels and glyphs.
     /// </summary>
     public string? FontFamily
@@ -233,6 +273,168 @@ public sealed class CustomTabsOptions : INotifyPropertyChanged
     {
         get => _badgeOffsetY;
         set => SetProperty(ref _badgeOffsetY, value);
+    }
+
+    /// <summary>
+    /// Reselect behavior for active tab taps.
+    /// </summary>
+    public TabReselectBehavior ReselectBehavior
+    {
+        get => _reselectBehavior;
+        set => SetProperty(ref _reselectBehavior, value);
+    }
+
+    /// <summary>
+    /// Optional custom tab item template.
+    /// </summary>
+    public DataTemplate? TabItemTemplate
+    {
+        get => _tabItemTemplate;
+        set => SetProperty(ref _tabItemTemplate, value);
+    }
+
+    /// <summary>
+    /// Layout mode for the tab items.
+    /// </summary>
+    public TabLayoutMode TabLayoutMode
+    {
+        get => _tabLayoutMode;
+        set => SetProperty(ref _tabLayoutMode, value);
+    }
+
+    /// <summary>
+    /// Minimum tab count before Auto mode switches to scrollable.
+    /// </summary>
+    public int ScrollableThreshold
+    {
+        get => _scrollableThreshold;
+        set => SetProperty(ref _scrollableThreshold, value);
+    }
+
+    /// <summary>
+    /// Fixed width for tab items (use -1 for auto).
+    /// </summary>
+    public double TabItemWidth
+    {
+        get => _tabItemWidth;
+        set => SetProperty(ref _tabItemWidth, value);
+    }
+
+    /// <summary>
+    /// Minimum width for tab items.
+    /// </summary>
+    public double TabItemMinWidth
+    {
+        get => _tabItemMinWidth;
+        set => SetProperty(ref _tabItemMinWidth, value);
+    }
+
+    /// <summary>
+    /// Corner radius for the tab bar container.
+    /// </summary>
+    public CornerRadius TabBarCornerRadius
+    {
+        get => _tabBarCornerRadius;
+        set => SetProperty(ref _tabBarCornerRadius, value);
+    }
+
+    /// <summary>
+    /// Border color for the tab bar container.
+    /// </summary>
+    public Color BorderColor
+    {
+        get => _borderColor;
+        set => SetProperty(ref _borderColor, value);
+    }
+
+    /// <summary>
+    /// Border thickness for the tab bar container.
+    /// </summary>
+    public double BorderThickness
+    {
+        get => _borderThickness;
+        set => SetProperty(ref _borderThickness, value);
+    }
+
+    /// <summary>
+    /// Shadow applied to the tab bar container.
+    /// </summary>
+    public MauiShadow? TabBarShadow
+    {
+        get => _tabBarShadow;
+        set => SetProperty(ref _tabBarShadow, value);
+    }
+
+    /// <summary>
+    /// Fixed width for the indicator (use -1 for auto).
+    /// </summary>
+    public double IndicatorWidth
+    {
+        get => _indicatorWidth;
+        set => SetProperty(ref _indicatorWidth, value);
+    }
+
+    /// <summary>
+    /// Horizontal alignment for the indicator.
+    /// </summary>
+    public LayoutOptions IndicatorHorizontalOptions
+    {
+        get => _indicatorHorizontalOptions;
+        set => SetProperty(ref _indicatorHorizontalOptions, value);
+    }
+
+    /// <summary>
+    /// Corner radius for the indicator.
+    /// </summary>
+    public float IndicatorCornerRadius
+    {
+        get => _indicatorCornerRadius;
+        set => SetProperty(ref _indicatorCornerRadius, value);
+    }
+
+    /// <summary>
+    /// Enables keyboard navigation on desktop platforms.
+    /// </summary>
+    public bool EnableKeyboardNavigation
+    {
+        get => _enableKeyboardNavigation;
+        set => SetProperty(ref _enableKeyboardNavigation, value);
+    }
+
+    /// <summary>
+    /// Optional factory used to create navigation pages for all tabs.
+    /// </summary>
+    public Func<Page, NavigationPage>? NavigationPageFactory
+    {
+        get => _navigationPageFactory;
+        set => SetProperty(ref _navigationPageFactory, value);
+    }
+
+    /// <summary>
+    /// Default navigation bar visibility.
+    /// </summary>
+    public bool? NavigationBarVisible
+    {
+        get => _navigationBarVisible;
+        set => SetProperty(ref _navigationBarVisible, value);
+    }
+
+    /// <summary>
+    /// Default navigation bar background color.
+    /// </summary>
+    public Color? NavigationBarBackgroundColor
+    {
+        get => _navigationBarBackgroundColor;
+        set => SetProperty(ref _navigationBarBackgroundColor, value);
+    }
+
+    /// <summary>
+    /// Default navigation bar text color.
+    /// </summary>
+    public Color? NavigationBarTextColor
+    {
+        get => _navigationBarTextColor;
+        set => SetProperty(ref _navigationBarTextColor, value);
     }
 
     private bool SetProperty<T>(ref T backingStore, T value, [CallerMemberName] string? propertyName = null)

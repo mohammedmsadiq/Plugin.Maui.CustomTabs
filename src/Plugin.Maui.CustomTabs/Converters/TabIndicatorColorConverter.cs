@@ -6,33 +6,34 @@ using Plugin.Maui.CustomTabs.Models;
 namespace Plugin.Maui.CustomTabs.Converters;
 
 /// <summary>
-/// Chooses an icon color based on selection state.
+/// Chooses an indicator color based on selection state.
 /// </summary>
-public sealed class TabIconColorConverter : IMultiValueConverter
+public sealed class TabIndicatorColorConverter : IMultiValueConverter
 {
     /// <inheritdoc />
     public object Convert(object[] values, Type targetType, object? parameter, CultureInfo culture)
     {
         if (values.Length < 3)
         {
-            return Colors.White;
+            return Colors.Transparent;
         }
 
         var tab = values[0] as CustomTabItem;
         var selected = values[1] as CustomTabItem;
         var options = values[2] as CustomTabsOptions;
-        var selectedOverride = values.Length > 3 ? ExtractColor(values[3]) : null;
-        var unselectedOverride = values.Length > 4 ? ExtractColor(values[4]) : null;
+        var indicatorOverride = values.Length > 3 ? ExtractColor(values[3]) : null;
 
         if (tab == null || options == null)
         {
-            return Colors.White;
+            return Colors.Transparent;
         }
 
-        var selectedColor = selectedOverride ?? tab.SelectedIconColor ?? options.SelectedIconColor;
-        var unselectedColor = unselectedOverride ?? tab.UnselectedIconColor ?? options.UnselectedIconColor;
+        if (!ReferenceEquals(tab, selected))
+        {
+            return Colors.Transparent;
+        }
 
-        return ReferenceEquals(tab, selected) ? selectedColor : unselectedColor;
+        return indicatorOverride ?? tab.IndicatorColor ?? options.AccentColor;
     }
 
     private static Color? ExtractColor(object? value)

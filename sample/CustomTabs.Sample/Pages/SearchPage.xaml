@@ -5,10 +5,12 @@
              Title="Search">
     <VerticalStackLayout Padding="24" Spacing="12">
         <Label Text="Search"
+               AutomationId="search-title"
                FontSize="28"
                FontAttributes="Bold" />
         <Label Text="This tab demonstrates a separate navigation stack." />
         <Button Text="Push details"
+                AutomationId="search-push-details"
                 Clicked="OnPushDetailsClicked" />
     </VerticalStackLayout>
 </ContentPage>

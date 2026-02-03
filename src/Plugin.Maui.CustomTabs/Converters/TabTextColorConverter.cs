@@ -21,13 +21,23 @@ public sealed class TabTextColorConverter : IMultiValueConverter
         var tab = values[0] as CustomTabItem;
         var selected = values[1] as CustomTabItem;
         var options = values[2] as CustomTabsOptions;
+        var selectedOverride = values.Length > 3 ? ExtractColor(values[3]) : null;
+        var unselectedOverride = values.Length > 4 ? ExtractColor(values[4]) : null;
 
         if (tab == null || options == null)
         {
             return Colors.White;
         }
 
-        return ReferenceEquals(tab, selected) ? options.SelectedTextColor : options.UnselectedTextColor;
+        var selectedColor = selectedOverride ?? tab.SelectedTextColor ?? options.SelectedTextColor;
+        var unselectedColor = unselectedOverride ?? tab.UnselectedTextColor ?? options.UnselectedTextColor;
+
+        return ReferenceEquals(tab, selected) ? selectedColor : unselectedColor;
+    }
+
+    private static Color? ExtractColor(object? value)
+    {
+        return value is Color color ? color : null;
     }
 
     /// <inheritdoc />

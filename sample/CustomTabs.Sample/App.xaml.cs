@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using Microsoft.Maui.Controls;
 
 namespace CustomTabs.Sample;
@@ -12,6 +13,7 @@ public partial class App : Application
     /// </summary>
     public App()
     {
+        Debug.WriteLine("[Sample] App constructor invoked.");
         InitializeComponent();
     }
 }
