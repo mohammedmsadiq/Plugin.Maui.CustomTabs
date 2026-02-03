@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:controls="clr-namespace:Plugin.Maui.CustomTabs.Controls"
+             x:Class="Plugin.Maui.CustomTabs.Pages.CustomTabsHostPage"
+             BackgroundColor="{Binding Options.BackgroundColor}">
+    <Grid RowDefinitions="*,Auto">
+        <ContentView Grid.Row="0"
+                     Content="{Binding SelectedPage}" />
+        <Grid x:Name="TabBarHost" Grid.Row="1">
+            <controls:CustomTabBarView x:Name="TabBar"
+                                       Margin="{Binding Options.TabBarOuterMargin}" />
+        </Grid>
+    </Grid>
+</ContentPage>

@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Plugin.Maui.CustomTabs.Controls.CustomTabBarView"
+             x:Name="Root">
+    <Border StrokeThickness="0"
+            BackgroundColor="{Binding Options.BackgroundColor}"
+            HeightRequest="{Binding Options.TabBarHeight}"
+            Padding="{Binding Options.TabBarPadding}">
+        <FlexLayout Direction="Row"
+                    JustifyContent="SpaceAround"
+                    AlignItems="Center"
+                    BindableLayout.ItemsSource="{Binding Tabs}">
+            <BindableLayout.ItemTemplate>
+                <DataTemplate>
+                    <Grid x:Name="TabRoot"
+                          FlexLayout.Grow="1"
+                          FlexLayout.Basis="0"
+                          RowDefinitions="Auto,Auto,Auto"
+                          RowSpacing="0"
+                          HorizontalOptions="Fill"
+                          Loaded="OnTabViewLoaded"
+                          Unloaded="OnTabViewUnloaded">
+                        <Grid.GestureRecognizers>
+                            <TapGestureRecognizer Tapped="OnTabTapped"
+                                                  CommandParameter="{Binding .}" />
+                        </Grid.GestureRecognizers>
+
+                        <Grid x:Name="IconContainer"
+                              Grid.Row="0"
+                              HorizontalOptions="Center"
+                              VerticalOptions="Center">
+                            <Grid>
+                                <Image x:Name="GlyphIcon"
+                                       Style="{DynamicResource CustomTabsIconStyle}"
+                                       IsVisible="{Binding HasGlyphIcon}"
+                                       HeightRequest="{Binding Source={x:Reference Root}, Path=BindingContext.Options.IconSize}"
+                                       WidthRequest="{Binding Source={x:Reference Root}, Path=BindingContext.Options.IconSize}">
+                                    <Image.Source>
+                                        <FontImageSource Glyph="{Binding IconGlyph}"
+                                                         FontFamily="{Binding Source={x:Reference Root}, Path=BindingContext.Options.FontFamily}"
+                                                         Size="{Binding Source={x:Reference Root}, Path=BindingContext.Options.IconSize}">
+                                            <FontImageSource.Color>
+                                                <MultiBinding Converter="{StaticResource TabIconColorConverter}">
+                                                    <Binding />
+                                                    <Binding Source="{x:Reference Root}" Path="BindingContext.SelectedTab" />
+                                                    <Binding Source="{x:Reference Root}" Path="BindingContext.Options" />
+                                                </MultiBinding>
+                                            </FontImageSource.Color>
+                                        </FontImageSource>
+                                    </Image.Source>
+                                </Image>
+
+                                <Image x:Name="ImageIcon"
+                                       Style="{DynamicResource CustomTabsIconStyle}"
+                                       IsVisible="{Binding HasImageIcon}"
+                                       Source="{Binding IconImage}"
+                                       HeightRequest="{Binding Source={x:Reference Root}, Path=BindingContext.Options.IconSize}"
+                                       WidthRequest="{Binding Source={x:Reference Root}, Path=BindingContext.Options.IconSize}" />
+
+                                <Grid x:Name="BadgeContainer"
+                                      HorizontalOptions="End"
+                                      VerticalOptions="Start"
+                                      TranslationX="{Binding Source={x:Reference Root}, Path=BindingContext.Options.BadgeOffsetX}"
+                                      TranslationY="{Binding Source={x:Reference Root}, Path=BindingContext.Options.BadgeOffsetY}"
+                                      IsVisible="{Binding Badge.IsVisible, TargetNullValue=false}">
+                                    <Border x:Name="CountBadge"
+                                            StrokeThickness="0"
+                                            StrokeShape="RoundRectangle 8"
+                                            BackgroundColor="{Binding Badge.BackgroundColor, TargetNullValue=Red}"
+                                            Padding="4,0"
+                                            IsVisible="{Binding Badge.IsCountVisible, TargetNullValue=false}">
+                                        <Label Text="{Binding Badge.Count}"
+                                               FontSize="10"
+                                               TextColor="{Binding Badge.TextColor, TargetNullValue=White}"
+                                               HorizontalOptions="Center"
+                                               VerticalOptions="Center" />
+                                    </Border>
+                                    <BoxView x:Name="DotBadge"
+                                             WidthRequest="8"
+                                             HeightRequest="8"
+                                             CornerRadius="4"
+                                             Color="{Binding Badge.BackgroundColor, TargetNullValue=Red}"
+                                             IsVisible="{Binding Badge.IsDotVisible, TargetNullValue=false}" />
+                                </Grid>
+                            </Grid>
+                        </Grid>
+
+                        <Label Grid.Row="1"
+                               Style="{DynamicResource CustomTabsTitleStyle}"
+                               IsVisible="{Binding Source={x:Reference Root}, Path=BindingContext.Options.ShowText}"
+                               Text="{Binding TitleText}"
+                               FontSize="{Binding Source={x:Reference Root}, Path=BindingContext.Options.TextSize}"
+                               FontFamily="{Binding Source={x:Reference Root}, Path=BindingContext.Options.FontFamily}">
+                            <Label.TextColor>
+                                <MultiBinding Converter="{StaticResource TabTextColorConverter}">
+                                    <Binding />
+                                    <Binding Source="{x:Reference Root}" Path="BindingContext.SelectedTab" />
+                                    <Binding Source="{x:Reference Root}" Path="BindingContext.Options" />
+                                </MultiBinding>
+                            </Label.TextColor>
+                        </Label>
+
+                        <BoxView x:Name="Underline"
+                                 Grid.Row="2"
+                                 HeightRequest="{Binding Source={x:Reference Root}, Path=BindingContext.Options.UnderlineHeight}"
+                                 HorizontalOptions="Fill"
+                                 Margin="{Binding Source={x:Reference Root}, Path=BindingContext.Options.UnderlineMargin}"
+                                 IsVisible="{Binding Source={x:Reference Root}, Path=BindingContext.Options.ShowUnderline}"
+                                 BackgroundColor="{Binding Source={x:Reference Root}, Path=BindingContext.Options.AccentColor}">
+                            <BoxView.Opacity>
+                                <MultiBinding Converter="{StaticResource EqualsConverter}">
+                                    <Binding />
+                                    <Binding Source="{x:Reference Root}" Path="BindingContext.SelectedTab" />
+                                </MultiBinding>
+                            </BoxView.Opacity>
+                        </BoxView>
+                    </Grid>
+                </DataTemplate>
+            </BindableLayout.ItemTemplate>
+        </FlexLayout>
+    </Border>
+</ContentView>

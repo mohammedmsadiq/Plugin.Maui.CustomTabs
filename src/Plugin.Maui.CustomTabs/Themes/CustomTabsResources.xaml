@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ResourceDictionary xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+                    xmlns:converters="clr-namespace:Plugin.Maui.CustomTabs.Converters"
+                    x:Class="Plugin.Maui.CustomTabs.Themes.CustomTabsResources">
+    <converters:EqualsConverter x:Key="EqualsConverter" />
+    <converters:TabIconColorConverter x:Key="TabIconColorConverter" />
+    <converters:TabTextColorConverter x:Key="TabTextColorConverter" />
+
+    <Style x:Key="CustomTabsTitleStyle" TargetType="Label">
+        <Setter Property="HorizontalOptions" Value="Center" />
+        <Setter Property="VerticalOptions" Value="Center" />
+        <Setter Property="LineBreakMode" Value="NoWrap" />
+    </Style>
+
+    <Style x:Key="CustomTabsIconStyle" TargetType="Image">
+        <Setter Property="HorizontalOptions" Value="Center" />
+        <Setter Property="VerticalOptions" Value="Center" />
+    </Style>
+</ResourceDictionary>

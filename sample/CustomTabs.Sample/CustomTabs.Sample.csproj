@@ -1,0 +1,38 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFrameworks>net9.0-android;net9.0-ios</TargetFrameworks>
+    <UseMaui>true</UseMaui>
+    <SingleProject>true</SingleProject>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>CustomTabs.Sample</RootNamespace>
+    <ApplicationTitle>CustomTabs.Sample</ApplicationTitle>
+    <ApplicationId>com.sample.customtabs</ApplicationId>
+    <ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
+    <ApplicationVersion>1</ApplicationVersion>
+    <MauiXamlCompilation>true</MauiXamlCompilation>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(TargetFramework)' == 'net9.0-ios'">
+    <SupportedOSPlatformVersion>14.0</SupportedOSPlatformVersion>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(TargetFramework)' == 'net9.0-android'">
+    <SupportedOSPlatformVersion>21.0</SupportedOSPlatformVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <MauiIcon Include="Resources/AppIcon/appicon.svg" />
+    <MauiSplashScreen Include="Resources/Splash/splash.svg" Color="#071A3A" BaseSize="128,128" />
+    <MauiImage Include="Resources/Images/*" />
+    <MauiFont Include="Resources/Fonts/*" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Maui.Controls" Version="9.0.14" />
+    <PackageReference Include="Prism.Maui" Version="9.0.537" />
+    <PackageReference Include="Prism.DryIoc.Maui" Version="9.0.537" />
+    <ProjectReference Include="../../src/Plugin.Maui.CustomTabs/Plugin.Maui.CustomTabs.csproj" />
+  </ItemGroup>
+</Project>

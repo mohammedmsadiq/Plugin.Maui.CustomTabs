@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="CustomTabs.Sample.Pages.MessagesPage"
+             Title="Messages">
+    <VerticalStackLayout Padding="24" Spacing="12">
+        <Label Text="Messages"
+               FontSize="28"
+               FontAttributes="Bold" />
+        <Label Text="Badge count:" />
+        <Label Text="{Binding Count}"
+               FontSize="20"
+               FontAttributes="Bold" />
+        <HorizontalStackLayout Spacing="12">
+            <Button Text="Increment"
+                    Clicked="OnIncrementClicked" />
+            <Button Text="Decrement"
+                    Clicked="OnDecrementClicked" />
+        </HorizontalStackLayout>
+        <Button Text="Push details"
+                Clicked="OnPushDetailsClicked" />
+    </VerticalStackLayout>
+</ContentPage>
