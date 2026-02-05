@@ -3,14 +3,17 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:controls="clr-namespace:Plugin.Maui.CustomTabs.Controls;assembly=Plugin.Maui.CustomTabs"
              x:Class="Plugin.Maui.CustomTabs.Pages.CustomTabsHostPage"
-             BackgroundColor="{Binding Options.BackgroundColor}">
+             Padding="0"
+             BackgroundColor="{Binding Options.EffectivePageBackgroundColor}">
     <Grid x:Name="RootGrid"
           RowDefinitions="*,Auto">
         <ContentView x:Name="ContentHost"
                      Grid.Row="0"
+                     BackgroundColor="{Binding Options.EffectiveContentBackgroundColor}"
                      Content="{Binding SelectedContent}" />
         <Grid x:Name="TabBarHost"
-              Grid.Row="1">
+              Grid.Row="1"
+              BackgroundColor="{Binding Options.BackgroundColor}">
             <controls:CustomTabBarView x:Name="TabBar"
                                        Margin="{Binding Options.TabBarOuterMargin}"
                                        ViewModel="{Binding}" />

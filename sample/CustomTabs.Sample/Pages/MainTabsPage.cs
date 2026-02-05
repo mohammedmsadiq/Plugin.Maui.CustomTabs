@@ -26,8 +26,29 @@ public sealed class MainTabsPage : CustomTabsHostPage
     public MainTabsPage(SimpleLocalizationService localizationService)
         : base(CreateViewModel(localizationService), localizationService)
     {
+        Title = "Custom Tabs";
+        NavigationPage.SetHasNavigationBar(this, true);
+        NavigationPage.SetTitleView(this, BuildTitleView());
         Debug.WriteLine("[Sample] MainTabsPage constructor invoked.");
     }
+
+    private static View BuildTitleView()
+        => new Grid
+        {
+            Padding = new Thickness(12, 0),
+            VerticalOptions = LayoutOptions.Center,
+            Children =
+            {
+                new Label
+                {
+                    Text = "Custom Tabs",
+                    FontSize = 16,
+                    FontAttributes = FontAttributes.Bold,
+                    TextColor = Colors.Black,
+                    VerticalOptions = LayoutOptions.Center
+                }
+            }
+        };
 
     protected override void OnAppearing()
     {
@@ -51,7 +72,9 @@ public sealed class MainTabsPage : CustomTabsHostPage
             {
                 // Keep host background aligned with sample theme (dark surface)
                 // so extracted tab content remains readable.
-                BackgroundColor = Color.FromArgb("#1F2937"),
+                BackgroundColor = Colors.DarkBlue,
+                PageBackgroundColor = Colors.Blue,
+                ContentBackgroundColor = Colors.Green,
                 AccentColor = Color.FromArgb("#E5E7EB"),
                 SelectedIconColor = Color.FromArgb("#F9FAFB"),
                 UnselectedIconColor = Color.FromArgb("#6B7280"),
@@ -60,8 +83,10 @@ public sealed class MainTabsPage : CustomTabsHostPage
                 ShowText = true,
                 EnableAnimations = true,
                 EnableHaptics = false,
-                TabBarHeight = 74,
-                TabBarPadding = new Thickness(8, 8, 8, 10),
+                TabBarHeight = 52,
+                TabBarPadding = new Thickness(8, 4, 8, 6),
+                IconSize = 22,
+                TextSize = 11,
                 TabLayoutMode = TabLayoutMode.Fixed,
                 ScrollableThreshold = int.MaxValue,
                 BorderColor = Color.FromArgb("#374151"),

@@ -1,4 +1,7 @@
 using Microsoft.Maui.Controls.PlatformConfiguration;
+#if IOS
+using Microsoft.Maui.Controls.PlatformConfiguration.iOSSpecific;
+#endif
 using Microsoft.Maui.Devices;
 using Microsoft.Maui;
 using Plugin.Maui.CustomTabs.Controls;
@@ -6,6 +9,9 @@ using Plugin.Maui.CustomTabs.Models;
 using Plugin.Maui.CustomTabs.Services;
 using Plugin.Maui.CustomTabs.ViewModels;
 using System.Diagnostics;
+#if IOS
+using UIKit;
+#endif
 #if ANDROID
 using AndroidX.Core.View;
 using Microsoft.Maui.ApplicationModel;
@@ -40,6 +46,10 @@ public partial class CustomTabsHostPage : ContentPage
     {
         Debug.WriteLine("[CustomTabs] CustomTabsHostPage constructor invoked.");
         InitializeComponent();
+#if IOS
+        this.On<iOS>().SetUseSafeArea(false);
+#endif
+        Padding = Thickness.Zero;
         BindingContext = viewModel;
         _localizationService = localizationService;
         Loaded += OnHostLoaded;
@@ -416,10 +426,12 @@ public partial class CustomTabsHostPage : ContentPage
 
             var rebuiltContent = new ContentView();
             rebuiltContent.SetBinding(ContentView.ContentProperty, new Binding(nameof(CustomTabsViewModel.SelectedContent)));
+            rebuiltContent.SetBinding(Microsoft.Maui.Controls.VisualElement.BackgroundColorProperty, new Binding("Options.EffectiveContentBackgroundColor"));
             Grid.SetRow(rebuiltContent, 0);
 
             var rebuiltTabHost = new Grid();
             Grid.SetRow(rebuiltTabHost, 1);
+            rebuiltTabHost.SetBinding(Microsoft.Maui.Controls.VisualElement.BackgroundColorProperty, new Binding("Options.BackgroundColor"));
 
             var rebuiltTabBar = new CustomTabBarView
             {
@@ -442,6 +454,7 @@ public partial class CustomTabsHostPage : ContentPage
             BindingContext = viewModel
         };
         fallbackTabBar.SetBinding(View.MarginProperty, new Binding("Options.TabBarOuterMargin"));
+        tabBarHost.SetBinding(Microsoft.Maui.Controls.VisualElement.BackgroundColorProperty, new Binding("Options.BackgroundColor"));
         tabBarHost.Children.Clear();
         tabBarHost.Children.Add(fallbackTabBar);
     }
@@ -455,7 +468,9 @@ public partial class CustomTabsHostPage : ContentPage
         }
 
         var tabBarHost = GetTabBarHost();
-        if (tabBarHost == null)
+        var contentHost = GetContentHost();
+        var tabBar = GetTabBar();
+        if (tabBarHost == null || contentHost == null)
         {
             return;
         }
@@ -463,25 +478,47 @@ public partial class CustomTabsHostPage : ContentPage
         if (DeviceInfo.Platform == DevicePlatform.iOS)
         {
             var config = this.On<Microsoft.Maui.Controls.PlatformConfiguration.iOS>();
-            Microsoft.Maui.Controls.PlatformConfiguration.iOSSpecific.Page.SetUseSafeArea(config, viewModel.Options.RespectSafeArea);
-            tabBarHost.Padding = Thickness.Zero;
-            return;
+            Microsoft.Maui.Controls.PlatformConfiguration.iOSSpecific.Page.SetUseSafeArea(config, false);
         }
 
         if (!viewModel.Options.RespectSafeArea)
         {
             tabBarHost.Padding = Thickness.Zero;
+            contentHost.Padding = Thickness.Zero;
+            tabBarHost.Margin = Thickness.Zero;
+            if (tabBar != null)
+            {
+                tabBar.SafeAreaInsets = Thickness.Zero;
+            }
             return;
         }
 
         var insets = GetPlatformSafeAreaPadding();
-        if (viewModel.Options.VisualStyle == TabVisualStyle.TopUnderline)
+        var isTop = viewModel.Options.VisualStyle == TabVisualStyle.TopUnderline;
+
+        tabBarHost.Padding = new Thickness(insets.Left, 0, insets.Right, 0);
+        contentHost.Padding = isTop
+            ? new Thickness(insets.Left, 0, insets.Right, insets.Bottom)
+            : new Thickness(insets.Left, insets.Top, insets.Right, 0);
+
+        if (tabBar != null)
         {
-            tabBarHost.Padding = new Thickness(insets.Left, insets.Top, insets.Right, 0);
-            return;
+            tabBar.SafeAreaInsets = isTop
+                ? new Thickness(0, insets.Top, 0, 0)
+                : new Thickness(0, 0, 0, insets.Bottom);
         }
 
-        tabBarHost.Padding = new Thickness(insets.Left, 0, insets.Right, insets.Bottom);
+        if (DeviceInfo.Platform == DevicePlatform.iOS)
+        {
+            var offset = isTop ? -insets.Top : -insets.Bottom;
+            tabBarHost.Margin = offset == 0
+                ? Thickness.Zero
+                : new Thickness(0, isTop ? offset : 0, 0, !isTop ? offset : 0);
+        }
+        else
+        {
+            tabBarHost.Margin = Thickness.Zero;
+        }
     }
 
     private void ApplyTabBarBindingContext(CustomTabsViewModel? viewModel)
@@ -545,6 +582,22 @@ public partial class CustomTabsHostPage : ContentPage
 
     private Thickness GetPlatformSafeAreaPadding()
     {
+#if IOS
+        try
+        {
+            var keyWindow = GetKeyWindow();
+            if (keyWindow != null)
+            {
+                var insets = keyWindow.SafeAreaInsets;
+                return new Thickness(insets.Left, insets.Top, insets.Right, insets.Bottom);
+            }
+        }
+        catch
+        {
+            // ignore
+        }
+#endif
+
 #if ANDROID
         try
         {
@@ -582,6 +635,38 @@ public partial class CustomTabsHostPage : ContentPage
         return Thickness.Zero;
 #endif
     }
+
+#if IOS
+    private static UIWindow? GetKeyWindow()
+    {
+        var keyWindow = UIApplication.SharedApplication.KeyWindow;
+        if (keyWindow != null)
+        {
+            return keyWindow;
+        }
+
+        foreach (var scene in UIApplication.SharedApplication.ConnectedScenes)
+        {
+            if (scene is UIWindowScene windowScene)
+            {
+                foreach (var window in windowScene.Windows)
+                {
+                    if (window.IsKeyWindow)
+                    {
+                        return window;
+                    }
+                }
+            }
+        }
+
+        foreach (var window in UIApplication.SharedApplication.Windows)
+        {
+            return window;
+        }
+
+        return null;
+    }
+#endif
 
 #if WINDOWS
     private void AttachKeyboardHandlers()

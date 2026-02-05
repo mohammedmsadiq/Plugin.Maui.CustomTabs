@@ -42,6 +42,13 @@ public partial class CustomTabBarView : ContentView
         typeof(CustomTabBarView),
         true);
 
+    public static readonly BindableProperty SafeAreaInsetsProperty = BindableProperty.Create(
+        nameof(SafeAreaInsets),
+        typeof(Thickness),
+        typeof(CustomTabBarView),
+        default(Thickness),
+        propertyChanged: OnSafeAreaInsetsChanged);
+
     public static readonly BindableProperty EffectiveItemPaddingProperty = BindableProperty.Create(
         nameof(EffectiveItemPadding),
         typeof(Thickness),
@@ -138,6 +145,12 @@ public partial class CustomTabBarView : ContentView
     {
         get => (bool)GetValue(EffectiveShowUnderlineProperty);
         set => SetValue(EffectiveShowUnderlineProperty, value);
+    }
+
+    public Thickness SafeAreaInsets
+    {
+        get => (Thickness)GetValue(SafeAreaInsetsProperty);
+        set => SetValue(SafeAreaInsetsProperty, value);
     }
 
     public Thickness EffectiveItemPadding
@@ -276,6 +289,13 @@ public partial class CustomTabBarView : ContentView
     {
         var control = (CustomTabBarView)bindable;
         control.ApplyViewModel(newValue as CustomTabsViewModel, fromProperty: true);
+    }
+
+    private static void OnSafeAreaInsetsChanged(BindableObject bindable, object oldValue, object newValue)
+    {
+        var control = (CustomTabBarView)bindable;
+        control.ApplyVisualStyle();
+        control.UpdateLayoutMode();
     }
 
     private void ApplyViewModel(CustomTabsViewModel? viewModel, bool fromProperty)
@@ -516,6 +536,27 @@ public partial class CustomTabBarView : ContentView
             TabVisualStyle.Pills => new Thickness(8, 8, 8, 8),
             _ => options.TabBarPadding
         };
+
+        var safeInsets = SafeAreaInsets;
+        if (safeInsets != default)
+        {
+            if (style == TabVisualStyle.TopUnderline)
+            {
+                EffectiveTabBarPadding = new Thickness(
+                    EffectiveTabBarPadding.Left,
+                    EffectiveTabBarPadding.Top + safeInsets.Top,
+                    EffectiveTabBarPadding.Right,
+                    EffectiveTabBarPadding.Bottom);
+            }
+            else
+            {
+                EffectiveTabBarPadding = new Thickness(
+                    EffectiveTabBarPadding.Left,
+                    EffectiveTabBarPadding.Top,
+                    EffectiveTabBarPadding.Right,
+                    EffectiveTabBarPadding.Bottom + safeInsets.Bottom);
+            }
+        }
 
         EffectiveTabBarCornerRadius = style switch
         {

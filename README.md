@@ -79,7 +79,7 @@ If your app uses Prism, the pattern is slightly different:
 1. Create a `CustomTabsHostPage` subclass.
 2. Build a `CustomTabsViewModel` in the page constructor.
 3. Register the page for navigation.
-4. Navigate to the page using Prism navigation.
+4. Navigate to the page using Prism navigation (with a `NavigationPage` if you want a nav bar / `TitleView`).
 
 ```csharp
 using Plugin.Maui.CustomTabs.Models;
@@ -91,6 +91,9 @@ public sealed class MainTabsPage : CustomTabsHostPage
     public MainTabsPage(SimpleLocalizationService localization)
         : base(CreateViewModel(localization), localization)
     {
+        Title = "Custom Tabs";
+        NavigationPage.SetHasNavigationBar(this, true);
+        NavigationPage.SetTitleView(this, new Label { Text = "Custom Tabs" });
     }
 
     private static CustomTabsViewModel CreateViewModel(SimpleLocalizationService localization)
@@ -124,115 +127,14 @@ public sealed class MainTabsPage : CustomTabsHostPage
 // Prism registration
 prism.RegisterForNavigation<MainTabsPage>();
 
-// Navigate after splash/auth
-await NavigationService.NavigateAsync("/MainTabsPage");
+// Navigate after splash/auth (wrap in NavigationPage to show nav bar / TitleView)
+await NavigationService.NavigateAsync("/NavigationPage/MainTabsPage");
 ```
 
-## Quick start
+## Safe area + layout notes
 
-```csharp
-using Plugin.Maui.CustomTabs.Extensions;
-using Plugin.Maui.CustomTabs.Models;
-
-var options = new CustomTabsOptions
-{
-    BackgroundColor = Color.FromArgb("#1F2937"),
-    AccentColor = Color.FromArgb("#9CA3AF")
-};
-
-var tabs = new List<CustomTabItem>
-{
-    new CustomTabItem("home", "H", () => new HomePage()) { Title = "Home" },
-    new CustomTabItem("search", "S", () => new SearchPage()) { Title = "Search" },
-    new CustomTabItem("settings", "T", () => new SettingsPage()) { Title = "Settings" }
-};
-
-MainPage = CustomTabs.Create(tabs, "home", options);
-```
-
-## App setup options
-
-You can initialize the custom tabs page in two common ways:
-
-### 1) Plain MAUI (no navigation framework)
-
-```csharp
-public partial class App : Application
-{
-    private readonly Page _rootPage;
-
-    public App()
-    {
-        InitializeComponent();
-
-        var options = new CustomTabsOptions();
-        var tabs = new List<CustomTabItem>
-        {
-            new CustomTabItem("home", "H", () => new HomePage()) { Title = "Home" }
-        };
-
-        _rootPage = CustomTabs.Create(tabs, "home", options);
-    }
-
-    protected override Window CreateWindow(IActivationState? activationState)
-        => new Window(_rootPage);
-}
-```
-
-#### Plain MAUI splash + auth routing (no Prism)
-
-If you have a splash page that decides where to go, swap the root page after your login check:
-
-```csharp
-protected override async void OnAppearing()
-{
-    base.OnAppearing();
-
-    var isLoggedIn = await authService.IsLoggedInAsync();
-    var root = isLoggedIn
-        ? CustomTabs.Create(tabs, "home", options, localizationService)
-        : new NavigationPage(new LoginPage());
-
-    Application.Current!.Windows[0].Page = root;
-}
-```
-
-### 2) Prism (splash + auth routing)
-
-Create a Prism-friendly tabs page that derives from `CustomTabsHostPage`, then navigate to it after your splash check.
-
-```csharp
-public sealed class MainTabsPage : CustomTabsHostPage
-{
-    public MainTabsPage(SimpleLocalizationService localization)
-        : base(CreateViewModel(localization), localization)
-    {
-    }
-
-    private static CustomTabsViewModel CreateViewModel(SimpleLocalizationService localization)
-    {
-        var options = new CustomTabsOptions();
-        var tabs = new List<CustomTabItem>
-        {
-            new CustomTabItem("home", "H", () => new HomePage())
-            { TitleProvider = () => localization.Translate("Home") }
-        };
-
-        return new CustomTabsViewModel(tabs, "home", options);
-    }
-}
-```
-
-```csharp
-prism.RegisterForNavigation<SplashPage, SplashPageViewModel>();
-prism.RegisterForNavigation<LoginPage, LoginPageViewModel>();
-prism.RegisterForNavigation<MainTabsPage>();
-```
-
-```csharp
-var target = isLoggedIn ? "/MainTabsPage" : "/NavigationPage/LoginPage";
-await NavigationService.NavigateAsync(target);
-```
+- The tab bar now fills the bottom edge of the screen, while its internal padding keeps icons above the iOS home indicator.
+- Use `PageBackgroundColor` and `ContentBackgroundColor` to separate the tab bar, page, and content colors.
 
 ## Options
 
@@ -241,6 +143,8 @@ await NavigationService.NavigateAsync(target);
 | `ShowText` | `bool` | `true` | Toggle text labels at runtime. |
 | `TabBarHeight` | `double` | `76` | Overall tab bar height. |
 | `BackgroundColor` | `Color` | `#1F2937` | Tab bar background. |
+| `PageBackgroundColor` | `Color?` | `null` | Optional host page background. Defaults to `BackgroundColor`. |
+| `ContentBackgroundColor` | `Color?` | `null` | Optional content host background. Defaults to `PageBackgroundColor`. |
 | `AccentColor` | `Color` | `#9CA3AF` | Underline + selected tint. |
 | `SelectedTextColor` | `Color` | `#F9FAFB` | Selected label color. |
 | `UnselectedTextColor` | `Color` | `#9CA3AF` | Unselected label color. |
@@ -440,6 +344,8 @@ When `RespectSafeArea` is enabled, the host page ensures the bar does not overla
 ## Testing
 
 - Unit tests live in `tests/Plugin.Maui.CustomTabs.Tests`.
+- By default the test project targets `net9.0` only. To include MAUI targets, run:
+  `dotnet test tests/Plugin.Maui.CustomTabs.Tests/Plugin.Maui.CustomTabs.Tests.csproj -c Release -p:MAUI_TESTS=true`
 - UI tests live in `tests/Plugin.Maui.CustomTabs.UITests` and use Appium. Set `MAUI_APP_PATH`, `MAUI_PLATFORM`, and (optionally) `APPIUM_SERVER_URL`, `APPIUM_DEVICE_NAME`.
 
 ## FAQ

@@ -14,6 +14,8 @@ public sealed class CustomTabsOptions : INotifyPropertyChanged
     private bool _showText = true;
     private double _tabBarHeight = 76;
     private Color _backgroundColor = Color.FromArgb("#1F2937");
+    private Color? _pageBackgroundColor;
+    private Color? _contentBackgroundColor;
     private Color _accentColor = Color.FromArgb("#9CA3AF");
     private Color _selectedTextColor = Color.FromArgb("#F9FAFB");
     private Color _unselectedTextColor = Color.FromArgb("#9CA3AF");
@@ -84,8 +86,56 @@ public sealed class CustomTabsOptions : INotifyPropertyChanged
     public Color BackgroundColor
     {
         get => _backgroundColor;
-        set => SetProperty(ref _backgroundColor, value);
+        set
+        {
+            if (SetProperty(ref _backgroundColor, value))
+            {
+                OnPropertyChanged(nameof(EffectivePageBackgroundColor));
+                OnPropertyChanged(nameof(EffectiveContentBackgroundColor));
+            }
+        }
     }
+
+    /// <summary>
+    /// Optional background color for the host page. Defaults to <see cref="BackgroundColor"/>.
+    /// </summary>
+    public Color? PageBackgroundColor
+    {
+        get => _pageBackgroundColor;
+        set
+        {
+            if (SetProperty(ref _pageBackgroundColor, value))
+            {
+                OnPropertyChanged(nameof(EffectivePageBackgroundColor));
+                OnPropertyChanged(nameof(EffectiveContentBackgroundColor));
+            }
+        }
+    }
+
+    /// <summary>
+    /// Resolved background color for the host page.
+    /// </summary>
+    public Color EffectivePageBackgroundColor => _pageBackgroundColor ?? _backgroundColor;
+
+    /// <summary>
+    /// Optional background color for the content host. Defaults to <see cref="EffectivePageBackgroundColor"/>.
+    /// </summary>
+    public Color? ContentBackgroundColor
+    {
+        get => _contentBackgroundColor;
+        set
+        {
+            if (SetProperty(ref _contentBackgroundColor, value))
+            {
+                OnPropertyChanged(nameof(EffectiveContentBackgroundColor));
+            }
+        }
+    }
+
+    /// <summary>
+    /// Resolved background color for the content host area.
+    /// </summary>
+    public Color EffectiveContentBackgroundColor => _contentBackgroundColor ?? EffectivePageBackgroundColor;
 
     /// <summary>
     /// Accent color for the underline and selected elements.

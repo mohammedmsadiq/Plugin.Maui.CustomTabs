@@ -51,7 +51,7 @@ public static class MauiProgram
                 Debug.WriteLine("[Sample] Prism CreateWindow invoked.");
                 // Keep startup deterministic: land directly on tabs.
                 // Splash remains registered for manual/testing navigation.
-                var result = await navigation.NavigateAsync("/MainTabsPage");
+                var result = await navigation.NavigateAsync("/NavigationPage/MainTabsPage");
                 if (!result.Success)
                 {
                     SafeExecution.Run(() =>
