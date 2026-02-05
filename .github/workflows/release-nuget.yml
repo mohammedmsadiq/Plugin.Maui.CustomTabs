@@ -8,27 +8,37 @@ on:
 
 jobs:
   release-nuget:
-    runs-on: windows-latest
+    runs-on: macos-latest
 
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 9.0.x
+      - name: Install MAUI workload
+        run: dotnet workload install maui
       - name: Verify commit exists in origin/main
         run: |
           git fetch --no-tags --prune --depth=1 origin +refs/heads/*:refs/remotes/origin/*
-          git branch --remote --contains | findstr origin/main
+          git branch --remote --contains | grep origin/main
       - name: Get version information from tag
         id: get_version
+        shell: pwsh
         run: |
           $version="${{github.ref_name}}".TrimStart("v")
           "version-without-v=$version" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
       - name: Pack
-        run: dotnet pack Plugin.Maui.CustomTabs.sln -c Release -p:PackageVersion=${{ steps.get_version.outputs.version-without-v }}
+        run: dotnet pack src/Plugin.Maui.CustomTabs/Plugin.Maui.CustomTabs.csproj -c Release -p:PackageVersion=${{ steps.get_version.outputs.version-without-v }}
       - name: Upload package as artifact
         uses: actions/upload-artifact@v4
         with:
           name: Plugin.Maui.CustomTabs
-          path: src/Plugin.Maui.CustomTabs/bin/Release/*.nupkg
+          path: |
+            src/Plugin.Maui.CustomTabs/bin/Release/*.nupkg
+            src/Plugin.Maui.CustomTabs/bin/Release/*.snupkg
       - name: Push
-        run: dotnet nuget push src/Plugin.Maui.CustomTabs/bin/Release/Plugin.Maui.CustomTabs.${{ steps.get_version.outputs.version-without-v }}.nupkg -s https://api.nuget.org/v3/index.json -k ${{ secrets.NUGET_API_KEY }}
+        run: |
+          dotnet nuget push src/Plugin.Maui.CustomTabs/bin/Release/Plugin.Maui.CustomTabs.${{ steps.get_version.outputs.version-without-v }}.nupkg -s https://api.nuget.org/v3/index.json -k ${{ secrets.NUGET_API_KEY }} --skip-duplicate
+          dotnet nuget push src/Plugin.Maui.CustomTabs/bin/Release/Plugin.Maui.CustomTabs.${{ steps.get_version.outputs.version-without-v }}.snupkg -s https://api.nuget.org/v3/index.json -k ${{ secrets.NUGET_API_KEY }} --skip-duplicate
         env:
           GITHUB_TOKEN: ${{ secrets.NUGET_API_KEY }}
