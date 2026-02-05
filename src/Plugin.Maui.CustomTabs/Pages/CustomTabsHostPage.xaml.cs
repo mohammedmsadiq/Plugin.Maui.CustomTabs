@@ -499,7 +499,7 @@ public partial class CustomTabsHostPage : ContentPage
         tabBarHost.Padding = new Thickness(insets.Left, 0, insets.Right, 0);
         contentHost.Padding = isTop
             ? new Thickness(insets.Left, 0, insets.Right, insets.Bottom)
-            : new Thickness(insets.Left, insets.Top, insets.Right, 0);
+            : new Thickness(insets.Left, 0, insets.Right, 0);
 
         if (tabBar != null)
         {
