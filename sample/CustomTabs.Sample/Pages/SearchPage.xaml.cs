@@ -1,3 +1,5 @@
+using CustomTabs.Sample.Services;
+
 namespace CustomTabs.Sample.Pages;
 
 /// <summary>
@@ -15,6 +17,8 @@ public partial class SearchPage : ContentPage
 
     private async void OnPushDetailsClicked(object sender, EventArgs e)
     {
-        await Navigation.PushAsync(new DetailPage("Search details"));
+        await SafeExecution.RunAsync(
+            () => Navigation.PushAsync(new DetailPage("Search details")),
+            "SearchPage.OnPushDetailsClicked");
     }
 }

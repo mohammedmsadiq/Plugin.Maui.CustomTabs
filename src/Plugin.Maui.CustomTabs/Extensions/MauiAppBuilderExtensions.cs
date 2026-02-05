@@ -1,6 +1,8 @@
 using System.Linq;
 using Microsoft.Maui.Controls;
 using Microsoft.Maui.Hosting;
+using Microsoft.Extensions.DependencyInjection.Extensions;
+using Plugin.Maui.CustomTabs.Services;
 using Plugin.Maui.CustomTabs.Themes;
 
 namespace Plugin.Maui.CustomTabs.Extensions;
@@ -16,6 +18,7 @@ public static class MauiAppBuilderExtensions
     public static MauiAppBuilder UseCustomTabs(this MauiAppBuilder builder)
     {
         builder.Services.AddSingleton<IMauiInitializeService, CustomTabsInitializer>();
+        builder.Services.TryAddSingleton<ICustomTabsExceptionHandler, DebugCustomTabsExceptionHandler>();
         return builder;
     }
 

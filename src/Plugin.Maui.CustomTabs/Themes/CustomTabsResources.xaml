@@ -10,6 +10,7 @@
     <converters:TabIconColorConverter x:Key="TabIconColorConverter" />
     <converters:TabTextColorConverter x:Key="TabTextColorConverter" />
     <converters:TabIndicatorColorConverter x:Key="TabIndicatorColorConverter" />
+    <converters:TabItemBackgroundColorConverter x:Key="TabItemBackgroundColorConverter" />
 
     <Style x:Key="CustomTabsTitleStyle" TargetType="Label">
         <Setter Property="HorizontalOptions" Value="Center" />

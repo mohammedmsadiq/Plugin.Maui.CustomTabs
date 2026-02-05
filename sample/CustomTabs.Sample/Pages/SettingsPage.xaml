@@ -2,34 +2,134 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="CustomTabs.Sample.Pages.SettingsPage"
-             Title="Settings">
-    <VerticalStackLayout Padding="24" Spacing="16">
-        <Label Text="Settings"
-               FontSize="28"
-               FontAttributes="Bold" />
+             Title="Settings"
+             BackgroundColor="#1F2937">
+    <ScrollView>
+        <VerticalStackLayout Padding="24" Spacing="16">
+            <Label Text="Settings"
+                   TextColor="#F9FAFB"
+                   FontSize="28"
+                   FontAttributes="Bold" />
 
-        <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto">
-            <Label Text="Show text labels" VerticalOptions="Center" />
-            <Switch Grid.Column="1" IsToggled="{Binding ShowText}" />
-        </Grid>
+            <Label Text="Behavior"
+                   TextColor="#F9FAFB"
+                   FontAttributes="Bold" />
+            <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto">
+                <Label Text="Show text labels"
+                       TextColor="#F9FAFB"
+                       VerticalOptions="Center" />
+                <Switch Grid.Column="1" IsToggled="{Binding ShowText}" />
+            </Grid>
+            <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto">
+                <Label Text="Enable animations"
+                       TextColor="#F9FAFB"
+                       VerticalOptions="Center" />
+                <Switch Grid.Column="1" IsToggled="{Binding EnableAnimations}" />
+            </Grid>
+            <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto">
+                <Label Text="Show underline"
+                       TextColor="#F9FAFB"
+                       VerticalOptions="Center" />
+                <Switch Grid.Column="1" IsToggled="{Binding ShowUnderline}" />
+            </Grid>
+            <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto">
+                <Label Text="Enable haptics"
+                       TextColor="#F9FAFB"
+                       VerticalOptions="Center" />
+                <Switch Grid.Column="1" IsToggled="{Binding EnableHaptics}" />
+            </Grid>
+            <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto">
+                <Label Text="Respect safe area"
+                       TextColor="#F9FAFB"
+                       VerticalOptions="Center" />
+                <Switch Grid.Column="1" IsToggled="{Binding RespectSafeArea}" />
+            </Grid>
+            <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto">
+                <Label Text="Keyboard navigation"
+                       TextColor="#F9FAFB"
+                       VerticalOptions="Center" />
+                <Switch Grid.Column="1" IsToggled="{Binding EnableKeyboardNavigation}" />
+            </Grid>
 
-        <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto">
-            <Label Text="Enable animations" VerticalOptions="Center" />
-            <Switch Grid.Column="1" IsToggled="{Binding EnableAnimations}" />
-        </Grid>
+            <Label Text="Style"
+                   TextColor="#F9FAFB"
+                   FontAttributes="Bold" />
+            <Picker x:Name="VisualStylePicker"
+                    TextColor="#F9FAFB"
+                    BackgroundColor="#374151"
+                    ItemDisplayBinding="{Binding Label}"
+                    SelectedIndexChanged="OnVisualStyleChanged" />
+            <Picker x:Name="LayoutModePicker"
+                    TextColor="#F9FAFB"
+                    BackgroundColor="#374151"
+                    ItemDisplayBinding="{Binding Label}"
+                    SelectedIndexChanged="OnLayoutModeChanged" />
+            <Picker x:Name="ReselectBehaviorPicker"
+                    TextColor="#F9FAFB"
+                    BackgroundColor="#374151"
+                    ItemDisplayBinding="{Binding Label}"
+                    SelectedIndexChanged="OnReselectBehaviorChanged" />
 
-        <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto">
-            <Label Text="Show underline" VerticalOptions="Center" />
-            <Switch Grid.Column="1" IsToggled="{Binding ShowUnderline}" />
-        </Grid>
+            <Label x:Name="IconSizeValueLabel" TextColor="#F9FAFB" />
+            <Slider x:Name="IconSizeSlider"
+                    Minimum="16"
+                    Maximum="36"
+                    ValueChanged="OnIconSizeChanged" />
 
-        <Label Text="Language" FontAttributes="Bold" />
-        <HorizontalStackLayout Spacing="12">
-            <Button Text="English" Clicked="OnEnglishClicked" />
-            <Button Text="French" Clicked="OnFrenchClicked" />
-        </HorizontalStackLayout>
-        <Label x:Name="LanguageLabel" />
+            <Label x:Name="TextSizeValueLabel" TextColor="#F9FAFB" />
+            <Slider x:Name="TextSizeSlider"
+                    Minimum="10"
+                    Maximum="18"
+                    ValueChanged="OnTextSizeChanged" />
 
-        <Button Text="Push details" Clicked="OnPushDetailsClicked" />
-    </VerticalStackLayout>
+            <Label x:Name="TabBarHeightValueLabel" TextColor="#F9FAFB" />
+            <Slider x:Name="TabBarHeightSlider"
+                    Minimum="56"
+                    Maximum="110"
+                    ValueChanged="OnTabBarHeightChanged" />
+
+            <Label x:Name="BorderThicknessValueLabel" TextColor="#F9FAFB" />
+            <Slider x:Name="BorderThicknessSlider"
+                    Minimum="0"
+                    Maximum="4"
+                    ValueChanged="OnBorderThicknessChanged" />
+
+            <Label x:Name="CornerRadiusValueLabel" TextColor="#F9FAFB" />
+            <Slider x:Name="CornerRadiusSlider"
+                    Minimum="0"
+                    Maximum="28"
+                    ValueChanged="OnCornerRadiusChanged" />
+
+            <Label x:Name="ScrollableThresholdValueLabel" TextColor="#F9FAFB" />
+            <Stepper x:Name="ScrollableThresholdStepper"
+                     Minimum="3"
+                     Maximum="8"
+                     Increment="1"
+                     ValueChanged="OnScrollableThresholdChanged" />
+
+            <Label Text="Theme Presets"
+                   TextColor="#F9FAFB"
+                   FontAttributes="Bold" />
+            <HorizontalStackLayout Spacing="12">
+                <Button Text="Neutral"
+                        Clicked="OnThemeNeutralClicked" />
+                <Button Text="Slate"
+                        Clicked="OnThemeSlateClicked" />
+                <Button Text="Muted"
+                        Clicked="OnThemeMutedClicked" />
+            </HorizontalStackLayout>
+
+            <Label Text="Language"
+                   TextColor="#F9FAFB"
+                   FontAttributes="Bold" />
+            <HorizontalStackLayout Spacing="12">
+                <Button Text="English" Clicked="OnEnglishClicked" />
+                <Button Text="French" Clicked="OnFrenchClicked" />
+            </HorizontalStackLayout>
+            <Label x:Name="LanguageLabel"
+                   TextColor="#F9FAFB" />
+
+            <Button Text="Push details" Clicked="OnPushDetailsClicked" />
+        </VerticalStackLayout>
+    </ScrollView>
 </ContentPage>

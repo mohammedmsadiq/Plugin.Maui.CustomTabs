@@ -1,3 +1,4 @@
+using CustomTabs.Sample.Services;
 using Plugin.Maui.CustomTabs.Models;
 
 namespace CustomTabs.Sample.Pages;
@@ -21,19 +22,24 @@ public partial class MessagesPage : ContentPage
 
     private void OnIncrementClicked(object sender, EventArgs e)
     {
-        _badge.Count += 1;
+        SafeExecution.Run(() => _badge.Count += 1, "MessagesPage.OnIncrementClicked");
     }
 
     private void OnDecrementClicked(object sender, EventArgs e)
     {
-        if (_badge.Count > 0)
+        SafeExecution.Run(() =>
         {
-            _badge.Count -= 1;
-        }
+            if (_badge.Count > 0)
+            {
+                _badge.Count -= 1;
+            }
+        }, "MessagesPage.OnDecrementClicked");
     }
 
     private async void OnPushDetailsClicked(object sender, EventArgs e)
     {
-        await Navigation.PushAsync(new DetailPage("Message details"));
+        await SafeExecution.RunAsync(
+            () => Navigation.PushAsync(new DetailPage("Message details")),
+            "MessagesPage.OnPushDetailsClicked");
     }
 }

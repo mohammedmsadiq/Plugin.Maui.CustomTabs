@@ -1,5 +1,4 @@
 using Microsoft.Maui.Controls.PlatformConfiguration;
-using Microsoft.Maui.Controls.PlatformConfiguration.iOSSpecific;
 using Microsoft.Maui.Devices;
 using Microsoft.Maui;
 using Plugin.Maui.CustomTabs.Controls;
@@ -7,7 +6,6 @@ using Plugin.Maui.CustomTabs.Models;
 using Plugin.Maui.CustomTabs.Services;
 using Plugin.Maui.CustomTabs.ViewModels;
 using System.Diagnostics;
-using System.Linq;
 #if ANDROID
 using AndroidX.Core.View;
 using Microsoft.Maui.ApplicationModel;
@@ -26,8 +24,6 @@ namespace Plugin.Maui.CustomTabs.Pages;
 public partial class CustomTabsHostPage : ContentPage
 {
     private readonly ILocalizationRefreshService? _localizationService;
-    private Grid? _tabBarHost;
-    private CustomTabBarView? _tabBarView;
     private bool _localizationSubscribed;
     private CustomTabsViewModel? _subscribedViewModel;
     private bool _suppressSelectionSync;
@@ -46,10 +42,10 @@ public partial class CustomTabsHostPage : ContentPage
         InitializeComponent();
         BindingContext = viewModel;
         _localizationService = localizationService;
+        Loaded += OnHostLoaded;
 
-        EnsureLayout(viewModel);
-        _tabBarHost ??= ResolveTabBarHost();
         ApplyTabBarBindingContext(viewModel);
+        ApplyTabBarPlacement();
         SubscribeViewModel();
         SyncSelectionFromViewModel();
 
@@ -128,35 +124,57 @@ public partial class CustomTabsHostPage : ContentPage
     protected override void OnAppearing()
     {
         base.OnAppearing();
-        Debug.WriteLine("[CustomTabs] CustomTabsHostPage OnAppearing.");
-        SubscribeViewModel();
-        EnsureLayout(ViewModel);
-        ApplyTabBarBindingContext(ViewModel);
-        SubscribeLocalization();
-        UpdateSafeAreaPadding();
+        try
+        {
+            Debug.WriteLine("[CustomTabs] CustomTabsHostPage OnAppearing.");
+            SubscribeViewModel();
+            ApplyTabBarBindingContext(ViewModel);
+            ApplyTabBarPlacement();
+            SubscribeLocalization();
+            UpdateSafeAreaPadding();
+        }
+        catch (Exception ex)
+        {
+            CustomTabsExceptionReporter.Report(ex, "CustomTabsHostPage.OnAppearing");
+        }
     }
 
     /// <inheritdoc />
     protected override void OnBindingContextChanged()
     {
         base.OnBindingContextChanged();
-        Debug.WriteLine("[CustomTabs] CustomTabsHostPage OnBindingContextChanged.");
-        UnsubscribeViewModel();
-        SubscribeViewModel();
-        SyncSelectionFromViewModel();
-        EnsureLayout(ViewModel);
-        ApplyTabBarBindingContext(ViewModel);
+        try
+        {
+            Debug.WriteLine("[CustomTabs] CustomTabsHostPage OnBindingContextChanged.");
+            UnsubscribeViewModel();
+            SubscribeViewModel();
+            SyncSelectionFromViewModel();
+            ApplyTabBarBindingContext(ViewModel);
+            ApplyTabBarPlacement();
+        }
+        catch (Exception ex)
+        {
+            CustomTabsExceptionReporter.Report(ex, "CustomTabsHostPage.OnBindingContextChanged");
+        }
     }
 
     /// <inheritdoc />
     protected override void OnDisappearing()
     {
         base.OnDisappearing();
-        UnsubscribeLocalization();
-        UnsubscribeViewModel();
+        try
+        {
+            Loaded -= OnHostLoaded;
+            UnsubscribeLocalization();
+            UnsubscribeViewModel();
 #if WINDOWS
-        DetachKeyboardHandlers();
+            DetachKeyboardHandlers();
 #endif
+        }
+        catch (Exception ex)
+        {
+            CustomTabsExceptionReporter.Report(ex, "CustomTabsHostPage.OnDisappearing");
+        }
     }
 
     /// <inheritdoc />
@@ -174,29 +192,47 @@ public partial class CustomTabsHostPage : ContentPage
     {
         base.OnSizeAllocated(width, height);
 
-        if (_layoutLogged || _tabBarView == null)
+        try
         {
-            return;
-        }
+            if (_layoutLogged)
+            {
+                return;
+            }
 
-        _layoutLogged = true;
-        Debug.WriteLine($"[CustomTabs] Host size={width}x{height}, tab bar height={_tabBarView.Height}, visible={_tabBarView.IsVisible}.");
+            _layoutLogged = true;
+            var tabBar = GetTabBar();
+            var tabBarHeight = tabBar?.Height ?? -1;
+            var tabBarVisible = tabBar?.IsVisible ?? false;
+            Debug.WriteLine($"[CustomTabs] Host size={width}x{height}, tab bar height={tabBarHeight}, visible={tabBarVisible}.");
+        }
+        catch (Exception ex)
+        {
+            CustomTabsExceptionReporter.Report(ex, "CustomTabsHostPage.OnSizeAllocated");
+        }
     }
 
     /// <inheritdoc />
     protected override bool OnBackButtonPressed()
     {
-        if (DeviceInfo.Platform == DevicePlatform.Android && ViewModel?.SelectedTab?.NavigationPage != null)
+        try
         {
-            var nav = ViewModel.SelectedTab.NavigationPage;
-            if (nav.Navigation.NavigationStack.Count > 1)
+            if (DeviceInfo.Platform == DevicePlatform.Android && ViewModel?.SelectedTab?.NavigationPage != null)
             {
-                _ = nav.PopAsync();
-                return true;
+                var nav = ViewModel.SelectedTab.NavigationPage;
+                if (nav.Navigation.NavigationStack.Count > 1)
+                {
+                    SafeFireAndForget(nav.PopAsync(), "CustomTabsHostPage.OnBackButtonPressed.PopAsync");
+                    return true;
+                }
             }
-        }
 
-        return base.OnBackButtonPressed();
+            return base.OnBackButtonPressed();
+        }
+        catch (Exception ex)
+        {
+            CustomTabsExceptionReporter.Report(ex, "CustomTabsHostPage.OnBackButtonPressed");
+            return base.OnBackButtonPressed();
+        }
     }
 
     private static void OnSelectedTabKeyChanged(BindableObject bindable, object oldValue, object newValue)
@@ -310,8 +346,10 @@ public partial class CustomTabsHostPage : ContentPage
 
     private void OnOptionsPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
     {
-        if (e.PropertyName == nameof(CustomTabsOptions.RespectSafeArea))
+        if (e.PropertyName == nameof(CustomTabsOptions.RespectSafeArea)
+            || e.PropertyName == nameof(CustomTabsOptions.VisualStyle))
         {
+            ApplyTabBarPlacement();
             UpdateSafeAreaPadding();
         }
 #if WINDOWS
@@ -334,6 +372,80 @@ public partial class CustomTabsHostPage : ContentPage
         SelectedTabChanged?.Invoke(this, e);
     }
 
+    private void OnHostLoaded(object? sender, EventArgs e)
+    {
+        try
+        {
+            EnsureTabBarPresent();
+            ApplyTabBarBindingContext(ViewModel);
+            ApplyTabBarPlacement();
+            UpdateSafeAreaPadding();
+
+            var tabBar = GetTabBar();
+            Debug.WriteLine($"[CustomTabs] CustomTabsHostPage loaded. TabBar found={tabBar != null}, visible={tabBar?.IsVisible}, tabs={ViewModel?.Tabs.Count ?? 0}.");
+        }
+        catch (Exception ex)
+        {
+            CustomTabsExceptionReporter.Report(ex, "CustomTabsHostPage.OnHostLoaded");
+        }
+    }
+
+    private void EnsureTabBarPresent()
+    {
+        var viewModel = ViewModel;
+        if (viewModel == null)
+        {
+            return;
+        }
+
+        var tabBar = GetTabBar();
+        if (tabBar != null)
+        {
+            return;
+        }
+
+        var tabBarHost = GetTabBarHost();
+        var contentHost = GetContentHost();
+        if (tabBarHost == null || contentHost == null)
+        {
+            Debug.WriteLine("[CustomTabs] Rebuilding host layout because named elements were missing.");
+
+            var rebuiltRoot = new Grid();
+            rebuiltRoot.RowDefinitions.Add(new RowDefinition(GridLength.Star));
+            rebuiltRoot.RowDefinitions.Add(new RowDefinition(GridLength.Auto));
+
+            var rebuiltContent = new ContentView();
+            rebuiltContent.SetBinding(ContentView.ContentProperty, new Binding(nameof(CustomTabsViewModel.SelectedContent)));
+            Grid.SetRow(rebuiltContent, 0);
+
+            var rebuiltTabHost = new Grid();
+            Grid.SetRow(rebuiltTabHost, 1);
+
+            var rebuiltTabBar = new CustomTabBarView
+            {
+                ViewModel = viewModel,
+                BindingContext = viewModel
+            };
+            rebuiltTabBar.SetBinding(View.MarginProperty, new Binding("Options.TabBarOuterMargin"));
+            rebuiltTabHost.Children.Add(rebuiltTabBar);
+
+            rebuiltRoot.Children.Add(rebuiltContent);
+            rebuiltRoot.Children.Add(rebuiltTabHost);
+            Content = rebuiltRoot;
+            return;
+        }
+
+        Debug.WriteLine("[CustomTabs] Creating fallback tab bar in existing host.");
+        var fallbackTabBar = new CustomTabBarView
+        {
+            ViewModel = viewModel,
+            BindingContext = viewModel
+        };
+        fallbackTabBar.SetBinding(View.MarginProperty, new Binding("Options.TabBarOuterMargin"));
+        tabBarHost.Children.Clear();
+        tabBarHost.Children.Add(fallbackTabBar);
+    }
+
     private void UpdateSafeAreaPadding()
     {
         var viewModel = ViewModel;
@@ -342,39 +454,34 @@ public partial class CustomTabsHostPage : ContentPage
             return;
         }
 
-        if (_tabBarHost == null)
+        var tabBarHost = GetTabBarHost();
+        if (tabBarHost == null)
         {
-            _tabBarHost = ResolveTabBarHost();
-            if (_tabBarHost == null)
-            {
-                return;
-            }
+            return;
         }
 
         if (DeviceInfo.Platform == DevicePlatform.iOS)
         {
-            this.On<iOS>().SetUseSafeArea(viewModel.Options.RespectSafeArea);
-            _tabBarHost.Padding = Thickness.Zero;
+            var config = this.On<Microsoft.Maui.Controls.PlatformConfiguration.iOS>();
+            Microsoft.Maui.Controls.PlatformConfiguration.iOSSpecific.Page.SetUseSafeArea(config, viewModel.Options.RespectSafeArea);
+            tabBarHost.Padding = Thickness.Zero;
             return;
         }
 
         if (!viewModel.Options.RespectSafeArea)
         {
-            _tabBarHost.Padding = Thickness.Zero;
+            tabBarHost.Padding = Thickness.Zero;
             return;
         }
 
-        _tabBarHost.Padding = GetPlatformSafeAreaPadding();
-    }
-
-    private Grid? ResolveTabBarHost()
-    {
-        if (Content is not Grid root || root.Children.Count < 2)
+        var insets = GetPlatformSafeAreaPadding();
+        if (viewModel.Options.VisualStyle == TabVisualStyle.TopUnderline)
         {
-            return null;
+            tabBarHost.Padding = new Thickness(insets.Left, insets.Top, insets.Right, 0);
+            return;
         }
 
-        return root.Children[1] as Grid;
+        tabBarHost.Padding = new Thickness(insets.Left, 0, insets.Right, insets.Bottom);
     }
 
     private void ApplyTabBarBindingContext(CustomTabsViewModel? viewModel)
@@ -384,128 +491,57 @@ public partial class CustomTabsHostPage : ContentPage
             return;
         }
 
-        _tabBarHost ??= ResolveTabBarHost();
-        _tabBarView ??= ResolveTabBarView();
-        if (_tabBarView == null)
-        {
-            EnsureLayout(viewModel);
-            _tabBarView ??= ResolveTabBarView();
-            if (_tabBarView == null)
-            {
-                Debug.WriteLine("[CustomTabs] CustomTabsHostPage tab bar view not found.");
-                return;
-            }
-        }
-
-        if (!ReferenceEquals(_tabBarView.ViewModel, viewModel))
-        {
-            _tabBarView.ViewModel = viewModel;
-            Debug.WriteLine("[CustomTabs] CustomTabsHostPage applied tab bar view model.");
-        }
-    }
-
-    private void EnsureLayout(CustomTabsViewModel? viewModel)
-    {
-        if (Content is Grid existingGrid && FindTabBarView(existingGrid) != null)
+        var tabBar = GetTabBar();
+        if (tabBar == null)
         {
             return;
         }
 
-        var rootGrid = new Grid
+        if (!ReferenceEquals(tabBar.ViewModel, viewModel))
         {
-            RowDefinitions =
-            {
-                new RowDefinition { Height = GridLength.Star },
-                new RowDefinition { Height = GridLength.Auto }
-            }
-        };
+            tabBar.ViewModel = viewModel;
+            Debug.WriteLine("[CustomTabs] CustomTabsHostPage applied tab bar view model.");
+        }
+    }
 
-        var contentHost = new ContentView();
-        contentHost.SetBinding(ContentView.ContentProperty, new Binding(nameof(CustomTabsViewModel.SelectedContent)));
-        rootGrid.Children.Add(contentHost);
+    private void ApplyTabBarPlacement()
+    {
+        var rootGrid = GetRootGrid();
+        var tabBarHost = GetTabBarHost();
+        var contentHost = GetContentHost();
+        if (rootGrid == null || tabBarHost == null || contentHost == null || rootGrid.RowDefinitions.Count < 2)
+        {
+            return;
+        }
+
+        var top = ViewModel?.Options.VisualStyle == TabVisualStyle.TopUnderline;
+
+        if (top)
+        {
+            rootGrid.RowDefinitions[0].Height = GridLength.Auto;
+            rootGrid.RowDefinitions[1].Height = GridLength.Star;
+            Grid.SetRow(tabBarHost, 0);
+            Grid.SetRow(contentHost, 1);
+            return;
+        }
+
+        rootGrid.RowDefinitions[0].Height = GridLength.Star;
+        rootGrid.RowDefinitions[1].Height = GridLength.Auto;
         Grid.SetRow(contentHost, 0);
-
-        var tabHost = new Grid();
-        var tabBar = new CustomTabBarView();
-        tabBar.SetBinding(CustomTabBarView.ViewModelProperty, new Binding("."));
-        tabBar.SetBinding(Microsoft.Maui.Controls.View.MarginProperty, new Binding("Options.TabBarOuterMargin"));
-        tabHost.Children.Add(tabBar);
-        rootGrid.Children.Add(tabHost);
-        Grid.SetRow(tabHost, 1);
-
-        Content = rootGrid;
-        _tabBarHost = tabHost;
-        _tabBarView = tabBar;
-
-        if (viewModel != null)
-        {
-            SetBinding(BackgroundColorProperty, new Binding("Options.BackgroundColor"));
-        }
-
-        Debug.WriteLine("[CustomTabs] CustomTabsHostPage fallback layout created.");
+        Grid.SetRow(tabBarHost, 1);
     }
 
-    private CustomTabBarView? ResolveTabBarView()
-    {
-        if (_tabBarView != null)
-        {
-            return _tabBarView;
-        }
+    private Grid? GetRootGrid()
+        => RootGrid ?? (FindByName("RootGrid") as Grid);
 
-        if (_tabBarHost != null)
-        {
-            _tabBarView = _tabBarHost.Children.OfType<CustomTabBarView>().FirstOrDefault();
-            if (_tabBarView != null)
-            {
-                return _tabBarView;
-            }
-        }
+    private Grid? GetTabBarHost()
+        => TabBarHost ?? (FindByName("TabBarHost") as Grid);
 
-        _tabBarView = FindTabBarView(Content);
-        return _tabBarView;
-    }
+    private ContentView? GetContentHost()
+        => ContentHost ?? (FindByName("ContentHost") as ContentView);
 
-    private static CustomTabBarView? FindTabBarView(IView? view)
-    {
-        if (view == null)
-        {
-            return null;
-        }
-
-        if (view is CustomTabBarView tabBar)
-        {
-            return tabBar;
-        }
-
-        if (view is ContentView contentView)
-        {
-            return FindTabBarView(contentView.Content);
-        }
-
-        if (view is Microsoft.Maui.Controls.ScrollView scrollView)
-        {
-            return FindTabBarView(scrollView.Content);
-        }
-
-        if (view is Border border)
-        {
-            return FindTabBarView(border.Content);
-        }
-
-        if (view is Layout layout)
-        {
-            foreach (var child in layout.Children)
-            {
-                var found = FindTabBarView(child);
-                if (found != null)
-                {
-                    return found;
-                }
-            }
-        }
-
-        return null;
-    }
+    private CustomTabBarView? GetTabBar()
+        => TabBar ?? (FindByName("TabBar") as CustomTabBarView);
 
     private Thickness GetPlatformSafeAreaPadding()
     {
@@ -534,7 +570,7 @@ public partial class CustomTabsHostPage : ContentPage
 
             return new Thickness(
                 systemInsets.Left / density,
-                0,
+                systemInsets.Top / density,
                 systemInsets.Right / density,
                 systemInsets.Bottom / density);
         }
@@ -613,7 +649,7 @@ public partial class CustomTabsHostPage : ContentPage
                 break;
             case VirtualKey.Enter:
             case VirtualKey.Space:
-                _ = TriggerReselectAsync();
+                SafeFireAndForget(TriggerReselectAsync(), "CustomTabsHostPage.OnWindowsKeyDown.TriggerReselectAsync");
                 e.Handled = true;
                 break;
         }
@@ -684,17 +720,46 @@ public partial class CustomTabsHostPage : ContentPage
 
     private async Task TriggerReselectAsync()
     {
-        var viewModel = ViewModel;
-        var tab = viewModel?.SelectedTab;
-        if (viewModel == null || tab == null)
+        try
+        {
+            var viewModel = ViewModel;
+            var tab = viewModel?.SelectedTab;
+            if (viewModel == null || tab == null)
+            {
+                return;
+            }
+
+            var result = viewModel.TrySelectTab(tab, TabSelectionOrigin.User, allowReselect: true);
+            if (result == TabSelectionResult.Reselected)
+            {
+                await viewModel.HandleReselectAsync(tab);
+            }
+        }
+        catch (Exception ex)
+        {
+            CustomTabsExceptionReporter.Report(ex, "CustomTabsHostPage.TriggerReselectAsync");
+        }
+    }
+
+    private static void SafeFireAndForget(Task task, string context)
+    {
+        if (task.IsCompletedSuccessfully)
         {
             return;
         }
 
-        var result = viewModel.TrySelectTab(tab, TabSelectionOrigin.User, allowReselect: true);
-        if (result == TabSelectionResult.Reselected)
+        _ = ObserveTaskAsync(task, context);
+    }
+
+    private static async Task ObserveTaskAsync(Task task, string context)
+    {
+        try
         {
-            await viewModel.HandleReselectAsync(tab);
+            await task.ConfigureAwait(false);
+        }
+        catch (Exception ex)
+        {
+            CustomTabsExceptionReporter.Report(ex, context);
         }
     }
 }

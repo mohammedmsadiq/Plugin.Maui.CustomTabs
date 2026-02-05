@@ -4,9 +4,16 @@
              xmlns:prism="http://prismlibrary.com"
              x:Class="CustomTabs.Sample.Pages.LoginPage"
              Title="Login">
-    <VerticalStackLayout Padding="24" Spacing="12">
-        <Label Text="Login" FontSize="28" FontAttributes="Bold" />
-        <Label Text="Tap to simulate a successful login." />
-        <Button Text="Sign in" Command="{Binding SignInCommand}" />
-    </VerticalStackLayout>
+    <ScrollView>
+
+        <VerticalStackLayout Padding="24"
+                Spacing="12">
+            <Label Text="Login"
+                    FontSize="28"
+                    FontAttributes="Bold"/>
+            <Label Text="Tap to simulate a successful login."/>
+            <Button Text="Sign in"
+                    Command="{Binding SignInCommand}"/>
+        </VerticalStackLayout>
+    </ScrollView>
 </ContentPage>

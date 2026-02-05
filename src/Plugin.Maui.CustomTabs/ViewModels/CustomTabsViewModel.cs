@@ -54,7 +54,10 @@ public sealed class CustomTabsViewModel : INotifyPropertyChanged
 
         Options = options ?? throw new ArgumentNullException(nameof(options));
         Tabs = new ObservableCollection<CustomTabItem>(tabs);
-        SelectTabCommand = new Command<CustomTabItem>(async tab => await HandleSelectionAsync(tab, TabSelectionOrigin.User, allowReselect: true));
+        SelectTabCommand = new Command<CustomTabItem>(tab =>
+            SafeFireAndForget(
+                HandleSelectionAsync(tab, TabSelectionOrigin.User, allowReselect: true),
+                "CustomTabsViewModel.SelectTabCommand"));
 
         Tabs.CollectionChanged += OnTabsCollectionChanged;
         foreach (var tab in Tabs)
@@ -125,7 +128,9 @@ public sealed class CustomTabsViewModel : INotifyPropertyChanged
         var tab = Tabs.FirstOrDefault(t => t.Key == key);
         if (tab != null)
         {
-            _ = HandleSelectionAsync(tab, TabSelectionOrigin.Programmatic, allowReselect: false);
+            SafeFireAndForget(
+                HandleSelectionAsync(tab, TabSelectionOrigin.Programmatic, allowReselect: false),
+                "CustomTabsViewModel.SelectTabByKey");
         }
     }
 
@@ -139,7 +144,9 @@ public sealed class CustomTabsViewModel : INotifyPropertyChanged
             return;
         }
 
-        _ = HandleSelectionAsync(Tabs[index], TabSelectionOrigin.Programmatic, allowReselect: false);
+        SafeFireAndForget(
+            HandleSelectionAsync(Tabs[index], TabSelectionOrigin.Programmatic, allowReselect: false),
+            "CustomTabsViewModel.SelectTabByIndex");
     }
 
     /// <summary>
@@ -238,10 +245,17 @@ public sealed class CustomTabsViewModel : INotifyPropertyChanged
             return;
         }
 
-        var result = TrySelectTab(tab, origin, allowReselect);
-        if (result == TabSelectionResult.Reselected)
+        try
         {
-            await HandleReselectAsync(tab);
+            var result = TrySelectTab(tab, origin, allowReselect);
+            if (result == TabSelectionResult.Reselected)
+            {
+                await HandleReselectAsync(tab);
+            }
+        }
+        catch (Exception ex)
+        {
+            CustomTabsExceptionReporter.Report(ex, $"CustomTabsViewModel.HandleSelectionAsync({tab.Key})");
         }
     }
 
@@ -264,13 +278,20 @@ public sealed class CustomTabsViewModel : INotifyPropertyChanged
 
     private void SelectTabInternal(CustomTabItem tab)
     {
-        var previousTab = SelectedTab;
-        SelectedTab = tab;
-        SelectedPage = tab.GetOrCreateNavigationPage(Options);
-        OnPropertyChanged(nameof(SelectedContent));
-        Debug.WriteLine($"[CustomTabs] Selected tab set to {tab.Key}. NavigationPage created={SelectedPage != null}.");
-        OnPropertyChanged(nameof(SelectedIndex));
-        SelectedTabChanged?.Invoke(this, new TabSelectionChangedEventArgs(previousTab, SelectedTab, SelectedIndex));
+        try
+        {
+            var previousTab = SelectedTab;
+            SelectedTab = tab;
+            SelectedPage = tab.GetOrCreateNavigationPage(Options);
+            OnPropertyChanged(nameof(SelectedContent));
+            Debug.WriteLine($"[CustomTabs] Selected tab set to {tab.Key}. NavigationPage created={SelectedPage != null}.");
+            OnPropertyChanged(nameof(SelectedIndex));
+            SelectedTabChanged?.Invoke(this, new TabSelectionChangedEventArgs(previousTab, SelectedTab, SelectedIndex));
+        }
+        catch (Exception ex)
+        {
+            CustomTabsExceptionReporter.Report(ex, $"CustomTabsViewModel.SelectTabInternal({tab.Key})");
+        }
     }
 
     private CustomTabItem? ResolveDefaultTab(string? defaultKey)
@@ -355,6 +376,28 @@ public sealed class CustomTabsViewModel : INotifyPropertyChanged
         if (next != null)
         {
             SelectTabInternal(next);
+        }
+    }
+
+    private static void SafeFireAndForget(Task task, string context)
+    {
+        if (task.IsCompletedSuccessfully)
+        {
+            return;
+        }
+
+        _ = ObserveTaskAsync(task, context);
+    }
+
+    private static async Task ObserveTaskAsync(Task task, string context)
+    {
+        try
+        {
+            await task.ConfigureAwait(false);
+        }
+        catch (Exception ex)
+        {
+            CustomTabsExceptionReporter.Report(ex, context);
         }
     }
 

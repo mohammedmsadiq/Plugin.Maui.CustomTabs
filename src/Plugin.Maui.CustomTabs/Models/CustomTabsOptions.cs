@@ -13,12 +13,12 @@ public sealed class CustomTabsOptions : INotifyPropertyChanged
 {
     private bool _showText = true;
     private double _tabBarHeight = 76;
-    private Color _backgroundColor = Color.FromArgb("#071A3A");
-    private Color _accentColor = Color.FromArgb("#D4AF37");
-    private Color _selectedTextColor = Colors.White;
-    private Color _unselectedTextColor = Colors.LightGray;
-    private Color _selectedIconColor = Color.FromArgb("#D4AF37");
-    private Color _unselectedIconColor = Colors.LightGray;
+    private Color _backgroundColor = Color.FromArgb("#1F2937");
+    private Color _accentColor = Color.FromArgb("#9CA3AF");
+    private Color _selectedTextColor = Color.FromArgb("#F9FAFB");
+    private Color _unselectedTextColor = Color.FromArgb("#9CA3AF");
+    private Color _selectedIconColor = Color.FromArgb("#F9FAFB");
+    private Color _unselectedIconColor = Color.FromArgb("#9CA3AF");
     private bool _enableHaptics;
     private bool _enableAnimations = true;
     private TimeSpan _animationDuration = TimeSpan.FromMilliseconds(160);
@@ -38,6 +38,7 @@ public sealed class CustomTabsOptions : INotifyPropertyChanged
     private TabReselectBehavior _reselectBehavior = TabReselectBehavior.None;
     private DataTemplate? _tabItemTemplate;
     private TabLayoutMode _tabLayoutMode = TabLayoutMode.Auto;
+    private TabVisualStyle _visualStyle = TabVisualStyle.ClassicBottom;
     private int _scrollableThreshold = 5;
     private double _tabItemWidth = -1;
     private double _tabItemMinWidth;
@@ -300,6 +301,15 @@ public sealed class CustomTabsOptions : INotifyPropertyChanged
     {
         get => _tabLayoutMode;
         set => SetProperty(ref _tabLayoutMode, value);
+    }
+
+    /// <summary>
+    /// Preset visual style for the tab UI.
+    /// </summary>
+    public TabVisualStyle VisualStyle
+    {
+        get => _visualStyle;
+        set => SetProperty(ref _visualStyle, value);
     }
 
     /// <summary>

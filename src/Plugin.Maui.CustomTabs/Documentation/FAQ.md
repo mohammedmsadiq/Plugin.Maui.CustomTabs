@@ -29,3 +29,6 @@ Use `IconSource` for static icons or `IconProvider` for dynamic ones, then call 
 
 ## How do I make the tab bar scrollable?
 Set `TabLayoutMode` to `Scrollable`, or keep `Auto` and adjust `ScrollableThreshold`.
+
+## How do I switch between built-in tab looks?
+Set `CustomTabsOptions.VisualStyle` (`ClassicBottom`, `TopUnderline`, `Segmented`, `Floating`, `IconOnly`, `Compact`, `Minimal`, `Pills`).

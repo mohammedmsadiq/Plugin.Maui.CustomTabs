@@ -1,10 +1,10 @@
 # Plugin.Maui.CustomTabs
 
-Fully customizable, brand-driven bottom navigation for .NET MAUI (iOS/Android) with per-tab navigation stacks, localization-ready titles, optional text, badges, and animations.
+Fully customizable tab navigation for .NET MAUI (iOS/Android) with per-tab navigation stacks, localization-ready titles, optional text, badges, and animations.
 
 ## Why not TabbedPage or Shell?
 `TabbedPage` and Shell's tab bar provide limited layout control and styling. This library replaces the tab bar with a UI-driven control so you can:
-- Align the tab bar with brand design systems
+- Align the tab bar with your own design system
 - Animate and style the underline and icons freely
 - Keep independent navigation stacks per tab
 - Toggle text visibility and update options at runtime
@@ -23,6 +23,111 @@ using Plugin.Maui.CustomTabs.Extensions;
 builder.UseCustomTabs();
 ```
 
+## Starter guide (no Prism)
+
+This is the simplest way to get custom tabs working in a plain MAUI app.
+
+1. Install the package and call `UseCustomTabs()`.
+2. Create your tabs and options.
+3. Set the root page to `CustomTabs.Create(...)`.
+
+```csharp
+using Plugin.Maui.CustomTabs.Extensions;
+using Plugin.Maui.CustomTabs.Models;
+
+// MauiProgram.cs
+builder.UseCustomTabs();
+
+// App.xaml.cs
+public partial class App : Application
+{
+    private readonly Page _rootPage;
+
+    public App()
+    {
+        InitializeComponent();
+
+        var options = new CustomTabsOptions
+        {
+            BackgroundColor = Colors.White,
+            AccentColor = Colors.Gray,
+            SelectedTextColor = Colors.Black,
+            UnselectedTextColor = Colors.Gray,
+            SelectedIconColor = Colors.Black,
+            UnselectedIconColor = Colors.Gray
+        };
+
+        var tabs = new List<CustomTabItem>
+        {
+            new CustomTabItem("home", "H", () => new HomePage()) { Title = "Home" },
+            new CustomTabItem("search", "S", () => new SearchPage()) { Title = "Search" },
+            new CustomTabItem("settings", "G", () => new SettingsPage()) { Title = "Settings" }
+        };
+
+        _rootPage = CustomTabs.Create(tabs, "home", options);
+    }
+
+    protected override Window CreateWindow(IActivationState? activationState)
+        => new Window(_rootPage);
+}
+```
+
+## Starter guide (with Prism)
+
+If your app uses Prism, the pattern is slightly different:
+
+1. Create a `CustomTabsHostPage` subclass.
+2. Build a `CustomTabsViewModel` in the page constructor.
+3. Register the page for navigation.
+4. Navigate to the page using Prism navigation.
+
+```csharp
+using Plugin.Maui.CustomTabs.Models;
+using Plugin.Maui.CustomTabs.Pages;
+using Plugin.Maui.CustomTabs.ViewModels;
+
+public sealed class MainTabsPage : CustomTabsHostPage
+{
+    public MainTabsPage(SimpleLocalizationService localization)
+        : base(CreateViewModel(localization), localization)
+    {
+    }
+
+    private static CustomTabsViewModel CreateViewModel(SimpleLocalizationService localization)
+    {
+        var options = new CustomTabsOptions
+        {
+            BackgroundColor = Colors.White,
+            AccentColor = Colors.Gray,
+            SelectedTextColor = Colors.Black,
+            UnselectedTextColor = Colors.Gray,
+            SelectedIconColor = Colors.Black,
+            UnselectedIconColor = Colors.Gray
+        };
+
+        var tabs = new List<CustomTabItem>
+        {
+            new CustomTabItem("home", "H", () => new HomePage())
+            { TitleProvider = () => localization.Translate("Home") },
+            new CustomTabItem("search", "S", () => new SearchPage())
+            { TitleProvider = () => localization.Translate("Search") },
+            new CustomTabItem("settings", "G", () => new SettingsPage())
+            { TitleProvider = () => localization.Translate("Settings") }
+        };
+
+        return new CustomTabsViewModel(tabs, "home", options);
+    }
+}
+```
+
+```csharp
+// Prism registration
+prism.RegisterForNavigation<MainTabsPage>();
+
+// Navigate after splash/auth
+await NavigationService.NavigateAsync("/MainTabsPage");
+```
+
 ## Quick start
 
 ```csharp
@@ -31,8 +136,8 @@ using Plugin.Maui.CustomTabs.Models;
 
 var options = new CustomTabsOptions
 {
-    BackgroundColor = Color.FromArgb("#071A3A"),
-    AccentColor = Color.FromArgb("#D4AF37")
+    BackgroundColor = Color.FromArgb("#1F2937"),
+    AccentColor = Color.FromArgb("#9CA3AF")
 };
 
 var tabs = new List<CustomTabItem>
@@ -135,12 +240,12 @@ await NavigationService.NavigateAsync(target);
 | --- | --- | --- | --- |
 | `ShowText` | `bool` | `true` | Toggle text labels at runtime. |
 | `TabBarHeight` | `double` | `76` | Overall tab bar height. |
-| `BackgroundColor` | `Color` | `#071A3A` | Tab bar background. |
-| `AccentColor` | `Color` | `#D4AF37` | Underline + selected tint. |
-| `SelectedTextColor` | `Color` | `White` | Selected label color. |
-| `UnselectedTextColor` | `Color` | `LightGray` | Unselected label color. |
-| `SelectedIconColor` | `Color` | `#D4AF37` | Selected glyph color. |
-| `UnselectedIconColor` | `Color` | `LightGray` | Unselected glyph color. |
+| `BackgroundColor` | `Color` | `#1F2937` | Tab bar background. |
+| `AccentColor` | `Color` | `#9CA3AF` | Underline + selected tint. |
+| `SelectedTextColor` | `Color` | `#F9FAFB` | Selected label color. |
+| `UnselectedTextColor` | `Color` | `#9CA3AF` | Unselected label color. |
+| `SelectedIconColor` | `Color` | `#F9FAFB` | Selected glyph color. |
+| `UnselectedIconColor` | `Color` | `#9CA3AF` | Unselected glyph color. |
 | `EnableHaptics` | `bool` | `false` | Light haptic feedback on selection. |
 | `EnableAnimations` | `bool` | `true` | Enables icon + underline animations. |
 | `AnimationDuration` | `TimeSpan` | `160ms` | Duration for selection animations. |
@@ -157,6 +262,7 @@ await NavigationService.NavigateAsync(target);
 | `BorderThickness` | `double` | `0` | Tab bar border thickness. |
 | `TabBarShadow` | `Shadow?` | `null` | Optional shadow for the tab bar. |
 | `TabLayoutMode` | `TabLayoutMode` | `Auto` | `Fixed`, `Scrollable`, or `Auto` (uses `ScrollableThreshold`). |
+| `VisualStyle` | `TabVisualStyle` | `ClassicBottom` | Preset tab UI style (supports options 1,2,3,4,6,8,9,10). |
 | `ScrollableThreshold` | `int` | `5` | Tab count that triggers auto scroll. |
 | `TabItemWidth` | `double` | `-1` | Fixed width for tab items (`-1` for auto). |
 | `TabItemMinWidth` | `double` | `0` | Minimum width for tab items. |
@@ -177,6 +283,25 @@ await NavigationService.NavigateAsync(target);
 | `NavigationBarTextColor` | `Color?` | `null` | Default nav bar text color. |
 
 All options are mutable at runtime. Any changes trigger UI updates.
+
+## Visual style presets
+
+`options.VisualStyle` supports these implemented presets:
+
+- `1` `ClassicBottom`
+- `2` `TopUnderline`
+- `3` `Segmented`
+- `4` `Floating`
+- `6` `IconOnly`
+- `8` `Compact`
+- `9` `Minimal`
+- `10` `Pills`
+
+Example:
+
+```csharp
+options.VisualStyle = TabVisualStyle.Pills;
+```
 
 ## Selection and gating
 

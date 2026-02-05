@@ -3,6 +3,7 @@ using System.Runtime.CompilerServices;
 using System.Windows.Input;
 using Microsoft.Maui.Controls;
 using Microsoft.Maui.Graphics;
+using Plugin.Maui.CustomTabs.Services;
 using System.Diagnostics;
 
 namespace Plugin.Maui.CustomTabs.Models;
@@ -362,17 +363,45 @@ public sealed class CustomTabItem : INotifyPropertyChanged
             return NavigationPage;
         }
 
-        var rootPage = CreateRootPage();
-        var factory = NavigationPageFactory ?? options?.NavigationPageFactory;
-        NavigationPage = factory?.Invoke(rootPage) ?? new NavigationPage(rootPage);
-        AttachNavigationHandlers(NavigationPage);
-        Debug.WriteLine($"[CustomTabs] Created NavigationPage for tab '{Key}' using {(factory == null ? "default" : "custom")} factory.");
+        try
+        {
+            var rootPage = CreateRootPage();
+            var factory = NavigationPageFactory ?? options?.NavigationPageFactory;
+            NavigationPage = factory?.Invoke(rootPage) ?? new NavigationPage(rootPage);
+            AttachNavigationHandlers(NavigationPage);
+            Debug.WriteLine($"[CustomTabs] Created NavigationPage for tab '{Key}' using {(factory == null ? "default" : "custom")} factory.");
 
-        ApplyNavigationSettings(rootPage, NavigationPage, options);
-        OnPropertyChanged(nameof(CurrentPage));
-        OnPropertyChanged(nameof(CurrentContent));
+            ApplyNavigationSettings(rootPage, NavigationPage, options);
+            OnPropertyChanged(nameof(CurrentPage));
+            OnPropertyChanged(nameof(CurrentContent));
 
-        return NavigationPage;
+            return NavigationPage;
+        }
+        catch (Exception ex)
+        {
+            CustomTabsExceptionReporter.Report(ex, $"CustomTabItem.GetOrCreateNavigationPage({Key})");
+
+            var errorContent = new ScrollView
+            {
+                Content = new Label
+                {
+                    Margin = new Thickness(20),
+                    Text = $"Failed to create tab '{Key}'.\n{ex.Message}"
+                }
+            };
+
+            var fallbackPage = new ContentPage
+            {
+                Title = "Error",
+                Content = errorContent
+            };
+
+            NavigationPage = new NavigationPage(fallbackPage);
+            AttachNavigationHandlers(NavigationPage);
+            OnPropertyChanged(nameof(CurrentPage));
+            OnPropertyChanged(nameof(CurrentContent));
+            return NavigationPage;
+        }
     }
 
     private void AttachNavigationHandlers(NavigationPage navigationPage)

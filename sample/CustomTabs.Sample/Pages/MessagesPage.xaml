@@ -2,13 +2,17 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="CustomTabs.Sample.Pages.MessagesPage"
-             Title="Messages">
+             Title="Messages"
+             BackgroundColor="#1F2937">
     <VerticalStackLayout Padding="24" Spacing="12">
         <Label Text="Messages"
+               TextColor="#F9FAFB"
                FontSize="28"
                FontAttributes="Bold" />
-        <Label Text="Badge count:" />
+        <Label Text="Badge count:"
+               TextColor="#F9FAFB" />
         <Label Text="{Binding Count}"
+               TextColor="#F9FAFB"
                FontSize="20"
                FontAttributes="Bold" />
         <HorizontalStackLayout Spacing="12">

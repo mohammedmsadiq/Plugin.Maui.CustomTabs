@@ -1,3 +1,5 @@
+using CustomTabs.Sample.Services;
+
 namespace CustomTabs.Sample.Pages;
 
 /// <summary>
@@ -17,6 +19,8 @@ public partial class DetailPage : ContentPage
 
     private async void OnPopClicked(object sender, EventArgs e)
     {
-        await Navigation.PopAsync();
+        await SafeExecution.RunAsync(
+            () => Navigation.PopAsync(),
+            "DetailPage.OnPopClicked");
     }
 }

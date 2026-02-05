@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using CustomTabs.Sample.Services;
 
 namespace CustomTabs.Sample.Pages;
 
@@ -18,13 +19,27 @@ public partial class SplashPage : ContentPage
 
     protected override void OnAppearing()
     {
-        base.OnAppearing();
-        Debug.WriteLine("[Sample] SplashPage OnAppearing.");
+        try
+        {
+            base.OnAppearing();
+            Debug.WriteLine("[Sample] SplashPage OnAppearing.");
+        }
+        catch (Exception ex)
+        {
+            SampleExceptionHandler.Report(ex, "SplashPage.OnAppearing");
+        }
     }
 
     protected override void OnDisappearing()
     {
-        base.OnDisappearing();
-        Debug.WriteLine("[Sample] SplashPage OnDisappearing.");
+        try
+        {
+            base.OnDisappearing();
+            Debug.WriteLine("[Sample] SplashPage OnDisappearing.");
+        }
+        catch (Exception ex)
+        {
+            SampleExceptionHandler.Report(ex, "SplashPage.OnDisappearing");
+        }
     }
 }
