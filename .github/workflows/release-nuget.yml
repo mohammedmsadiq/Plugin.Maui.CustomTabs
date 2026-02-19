@@ -31,6 +31,10 @@ jobs:
         run: dotnet build src/Plugin.Maui.CustomTabs/Plugin.Maui.CustomTabs.csproj -c Release
       - name: Pack
         run: dotnet pack src/Plugin.Maui.CustomTabs/Plugin.Maui.CustomTabs.csproj -c Release -p:PackageVersion=${{ steps.get_version.outputs.version-without-v }} -p:NoBuild=true
+      - name: Build Prism helper
+        run: dotnet build src/Plugin.Maui.CustomTabs.Prism/Plugin.Maui.CustomTabs.Prism.csproj -c Release
+      - name: Pack Prism helper
+        run: dotnet pack src/Plugin.Maui.CustomTabs.Prism/Plugin.Maui.CustomTabs.Prism.csproj -c Release -p:PackageVersion=${{ steps.get_version.outputs.version-without-v }} -p:NoBuild=true
       - name: Upload package as artifact
         uses: actions/upload-artifact@v4
         with:
@@ -38,9 +42,18 @@ jobs:
           path: |
             src/Plugin.Maui.CustomTabs/bin/Release/*.nupkg
             src/Plugin.Maui.CustomTabs/bin/Release/*.snupkg
+      - name: Upload Prism package as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Plugin.Maui.CustomTabs.Prism
+          path: |
+            src/Plugin.Maui.CustomTabs.Prism/bin/Release/*.nupkg
+            src/Plugin.Maui.CustomTabs.Prism/bin/Release/*.snupkg
       - name: Push
         run: |
           dotnet nuget push src/Plugin.Maui.CustomTabs/bin/Release/Plugin.Maui.CustomTabs.${{ steps.get_version.outputs.version-without-v }}.nupkg -s https://api.nuget.org/v3/index.json -k ${{ secrets.NUGET_API_KEY }} --skip-duplicate
           dotnet nuget push src/Plugin.Maui.CustomTabs/bin/Release/Plugin.Maui.CustomTabs.${{ steps.get_version.outputs.version-without-v }}.snupkg -s https://api.nuget.org/v3/index.json -k ${{ secrets.NUGET_API_KEY }} --skip-duplicate
+          dotnet nuget push src/Plugin.Maui.CustomTabs.Prism/bin/Release/Plugin.Maui.CustomTabs.Prism.${{ steps.get_version.outputs.version-without-v }}.nupkg -s https://api.nuget.org/v3/index.json -k ${{ secrets.NUGET_API_KEY }} --skip-duplicate
+          dotnet nuget push src/Plugin.Maui.CustomTabs.Prism/bin/Release/Plugin.Maui.CustomTabs.Prism.${{ steps.get_version.outputs.version-without-v }}.snupkg -s https://api.nuget.org/v3/index.json -k ${{ secrets.NUGET_API_KEY }} --skip-duplicate
         env:
           GITHUB_TOKEN: ${{ secrets.NUGET_API_KEY }}
