@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:prism="http://prismlibrary.com"
+             prism:ViewModelLocator.AutowireViewModel="Automatic"
              x:Class="CustomTabs.Sample.Pages.SearchPage"
              Title="Search">
     <VerticalStackLayout Padding="24" Spacing="12">
@@ -11,6 +13,6 @@
         <Label Text="This tab demonstrates a separate navigation stack." />
         <Button Text="Push details"
                 AutomationId="search-push-details"
-                Clicked="OnPushDetailsClicked" />
+                Command="{Binding PushDetailsCommand}" />
     </VerticalStackLayout>
 </ContentPage>

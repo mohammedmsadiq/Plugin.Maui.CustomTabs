@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:prism="http://prismlibrary.com"
+             prism:ViewModelLocator.AutowireViewModel="Automatic"
              x:Class="CustomTabs.Sample.Pages.SettingsPage"
              Title="Settings"
              BackgroundColor="#1F2937">
@@ -18,118 +20,112 @@
                 <Label Text="Show text labels"
                        TextColor="#F9FAFB"
                        VerticalOptions="Center" />
-                <Switch Grid.Column="1" IsToggled="{Binding ShowText}" />
+                <Switch Grid.Column="1" IsToggled="{Binding Options.ShowText}" />
             </Grid>
             <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto">
                 <Label Text="Enable animations"
                        TextColor="#F9FAFB"
                        VerticalOptions="Center" />
-                <Switch Grid.Column="1" IsToggled="{Binding EnableAnimations}" />
+                <Switch Grid.Column="1" IsToggled="{Binding Options.EnableAnimations}" />
             </Grid>
             <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto">
                 <Label Text="Show underline"
                        TextColor="#F9FAFB"
                        VerticalOptions="Center" />
-                <Switch Grid.Column="1" IsToggled="{Binding ShowUnderline}" />
+                <Switch Grid.Column="1" IsToggled="{Binding Options.ShowUnderline}" />
             </Grid>
             <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto">
                 <Label Text="Enable haptics"
                        TextColor="#F9FAFB"
                        VerticalOptions="Center" />
-                <Switch Grid.Column="1" IsToggled="{Binding EnableHaptics}" />
+                <Switch Grid.Column="1" IsToggled="{Binding Options.EnableHaptics}" />
             </Grid>
             <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto">
                 <Label Text="Respect safe area"
                        TextColor="#F9FAFB"
                        VerticalOptions="Center" />
-                <Switch Grid.Column="1" IsToggled="{Binding RespectSafeArea}" />
+                <Switch Grid.Column="1" IsToggled="{Binding Options.RespectSafeArea}" />
             </Grid>
             <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto">
                 <Label Text="Keyboard navigation"
                        TextColor="#F9FAFB"
                        VerticalOptions="Center" />
-                <Switch Grid.Column="1" IsToggled="{Binding EnableKeyboardNavigation}" />
+                <Switch Grid.Column="1" IsToggled="{Binding Options.EnableKeyboardNavigation}" />
             </Grid>
 
             <Label Text="Style"
                    TextColor="#F9FAFB"
                    FontAttributes="Bold" />
-            <Picker x:Name="VisualStylePicker"
-                    TextColor="#F9FAFB"
+            <Picker TextColor="#F9FAFB"
                     BackgroundColor="#374151"
+                    ItemsSource="{Binding StyleOptions}"
                     ItemDisplayBinding="{Binding Label}"
-                    SelectedIndexChanged="OnVisualStyleChanged" />
-            <Picker x:Name="LayoutModePicker"
-                    TextColor="#F9FAFB"
+                    SelectedItem="{Binding SelectedStyle}" />
+            <Picker TextColor="#F9FAFB"
                     BackgroundColor="#374151"
+                    ItemsSource="{Binding LayoutModes}"
                     ItemDisplayBinding="{Binding Label}"
-                    SelectedIndexChanged="OnLayoutModeChanged" />
-            <Picker x:Name="ReselectBehaviorPicker"
-                    TextColor="#F9FAFB"
+                    SelectedItem="{Binding SelectedLayoutMode}" />
+            <Picker TextColor="#F9FAFB"
                     BackgroundColor="#374151"
+                    ItemsSource="{Binding ReselectBehaviors}"
                     ItemDisplayBinding="{Binding Label}"
-                    SelectedIndexChanged="OnReselectBehaviorChanged" />
+                    SelectedItem="{Binding SelectedReselectBehavior}" />
 
-            <Label x:Name="IconSizeValueLabel" TextColor="#F9FAFB" />
-            <Slider x:Name="IconSizeSlider"
-                    Minimum="16"
+            <Label Text="{Binding IconSizeLabel}" TextColor="#F9FAFB" />
+            <Slider Minimum="16"
                     Maximum="36"
-                    ValueChanged="OnIconSizeChanged" />
+                    Value="{Binding Options.IconSize, Mode=TwoWay}" />
 
-            <Label x:Name="TextSizeValueLabel" TextColor="#F9FAFB" />
-            <Slider x:Name="TextSizeSlider"
-                    Minimum="10"
+            <Label Text="{Binding TextSizeLabel}" TextColor="#F9FAFB" />
+            <Slider Minimum="10"
                     Maximum="18"
-                    ValueChanged="OnTextSizeChanged" />
+                    Value="{Binding Options.TextSize, Mode=TwoWay}" />
 
-            <Label x:Name="TabBarHeightValueLabel" TextColor="#F9FAFB" />
-            <Slider x:Name="TabBarHeightSlider"
-                    Minimum="56"
+            <Label Text="{Binding TabBarHeightLabel}" TextColor="#F9FAFB" />
+            <Slider Minimum="56"
                     Maximum="110"
-                    ValueChanged="OnTabBarHeightChanged" />
+                    Value="{Binding Options.TabBarHeight, Mode=TwoWay}" />
 
-            <Label x:Name="BorderThicknessValueLabel" TextColor="#F9FAFB" />
-            <Slider x:Name="BorderThicknessSlider"
-                    Minimum="0"
+            <Label Text="{Binding BorderThicknessLabel}" TextColor="#F9FAFB" />
+            <Slider Minimum="0"
                     Maximum="4"
-                    ValueChanged="OnBorderThicknessChanged" />
+                    Value="{Binding Options.BorderThickness, Mode=TwoWay}" />
 
-            <Label x:Name="CornerRadiusValueLabel" TextColor="#F9FAFB" />
-            <Slider x:Name="CornerRadiusSlider"
-                    Minimum="0"
+            <Label Text="{Binding CornerRadiusLabel}" TextColor="#F9FAFB" />
+            <Slider Minimum="0"
                     Maximum="28"
-                    ValueChanged="OnCornerRadiusChanged" />
+                    Value="{Binding CornerRadiusValue, Mode=TwoWay}" />
 
-            <Label x:Name="ScrollableThresholdValueLabel" TextColor="#F9FAFB" />
-            <Stepper x:Name="ScrollableThresholdStepper"
-                     Minimum="3"
+            <Label Text="{Binding ScrollableThresholdLabel}" TextColor="#F9FAFB" />
+            <Stepper Minimum="3"
                      Maximum="8"
                      Increment="1"
-                     ValueChanged="OnScrollableThresholdChanged" />
+                     Value="{Binding ScrollableThresholdValue, Mode=TwoWay}" />
 
             <Label Text="Theme Presets"
                    TextColor="#F9FAFB"
                    FontAttributes="Bold" />
             <HorizontalStackLayout Spacing="12">
                 <Button Text="Neutral"
-                        Clicked="OnThemeNeutralClicked" />
+                        Command="{Binding ApplyNeutralThemeCommand}" />
                 <Button Text="Slate"
-                        Clicked="OnThemeSlateClicked" />
+                        Command="{Binding ApplySlateThemeCommand}" />
                 <Button Text="Muted"
-                        Clicked="OnThemeMutedClicked" />
+                        Command="{Binding ApplyMutedThemeCommand}" />
             </HorizontalStackLayout>
 
             <Label Text="Language"
                    TextColor="#F9FAFB"
                    FontAttributes="Bold" />
             <HorizontalStackLayout Spacing="12">
-                <Button Text="English" Clicked="OnEnglishClicked" />
-                <Button Text="French" Clicked="OnFrenchClicked" />
+                <Button Text="English" Command="{Binding SetEnglishCommand}" />
+                <Button Text="French" Command="{Binding SetFrenchCommand}" />
             </HorizontalStackLayout>
-            <Label x:Name="LanguageLabel"
+            <Label Text="{Binding CurrentLanguageLabel}"
                    TextColor="#F9FAFB" />
 
-            <Button Text="Push details" Clicked="OnPushDetailsClicked" />
+            <Button Text="Push details" Command="{Binding PushDetailsCommand}" />
         </VerticalStackLayout>
     </ScrollView>
 </ContentPage>

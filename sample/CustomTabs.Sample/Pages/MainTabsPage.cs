@@ -1,10 +1,11 @@
 using CustomTabs.Sample.Services;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Maui.Devices;
 using Microsoft.Maui.Controls;
+using Microsoft.Maui.Devices;
 using Plugin.Maui.CustomTabs.Models;
 using Plugin.Maui.CustomTabs.Pages;
+using Plugin.Maui.CustomTabs.Prism;
 using Plugin.Maui.CustomTabs.ViewModels;
+using Prism.Ioc;
 using System.Diagnostics;
 
 namespace CustomTabs.Sample.Pages;
@@ -14,21 +15,22 @@ namespace CustomTabs.Sample.Pages;
 /// </summary>
 public sealed class MainTabsPage : CustomTabsHostPage
 {
+    private static bool _optionsConfigured;
+    private static bool _badgeConfigured;
+
     /// <summary>
     /// Creates the main tabs page.
     /// </summary>
-    public MainTabsPage()
-        : this(ResolveLocalizationService())
-    {
-        Debug.WriteLine("[Sample] MainTabsPage constructor invoked.");
-    }
-
-    public MainTabsPage(SimpleLocalizationService localizationService)
-        : base(CreateViewModel(localizationService), localizationService)
+    public MainTabsPage(IContainerProvider container,
+        SimpleLocalizationService localizationService,
+        CustomTabsOptions options,
+        CustomTabBadge messagesBadge)
+        : base(CreateViewModel(container, localizationService, options, messagesBadge), localizationService)
     {
         Title = "Custom Tabs";
         NavigationPage.SetHasNavigationBar(this, true);
         NavigationPage.SetTitleView(this, BuildTitleView());
+        PrismCustomTabs.TrySetContainerProvider(this, container);
         Debug.WriteLine("[Sample] MainTabsPage constructor invoked.");
     }
 
@@ -63,92 +65,59 @@ public sealed class MainTabsPage : CustomTabsHostPage
         }
     }
 
-    private static CustomTabsViewModel CreateViewModel(SimpleLocalizationService localizationService)
+    private static CustomTabsViewModel CreateViewModel(
+        IContainerProvider container,
+        SimpleLocalizationService localizationService,
+        CustomTabsOptions options,
+        CustomTabBadge messagesBadge)
     {
         try
         {
             Debug.WriteLine("[Sample] MainTabsPage CreateViewModel starting.");
-            var options = new CustomTabsOptions
-            {
-                // Keep host background aligned with sample theme (dark surface)
-                // so extracted tab content remains readable.
-                BackgroundColor = Colors.DarkBlue,
-                PageBackgroundColor = Colors.Blue,
-                ContentBackgroundColor = Colors.Green,
-                AccentColor = Color.FromArgb("#E5E7EB"),
-                SelectedIconColor = Color.FromArgb("#F9FAFB"),
-                UnselectedIconColor = Color.FromArgb("#6B7280"),
-                SelectedTextColor = Color.FromArgb("#F9FAFB"),
-                UnselectedTextColor = Color.FromArgb("#9CA3AF"),
-                ShowText = true,
-                EnableAnimations = true,
-                EnableHaptics = false,
-                TabBarHeight = 52,
-                TabBarPadding = new Thickness(8, 4, 8, 6),
-                IconSize = 22,
-                TextSize = 11,
-                TabLayoutMode = TabLayoutMode.Fixed,
-                ScrollableThreshold = int.MaxValue,
-                BorderColor = Color.FromArgb("#374151"),
-                BorderThickness = 1,
-                UnderlineMargin = new Thickness(0, 6, 0, 0),
-                ReselectBehavior = TabReselectBehavior.PopToRoot | TabReselectBehavior.ScrollToTop,
-                VisualStyle = TabVisualStyle.ClassicBottom
-            };
-
-            if (DeviceInfo.Platform == DevicePlatform.Android)
-            {
-                options.BadgeOffsetY = 0;
-            }
-
-            var messagesBadge = new CustomTabBadge
-            {
-                Count = 2,
-                BackgroundColor = Colors.Red,
-                TextColor = Colors.White
-            };
+            ConfigureOptions(options);
+            ConfigureBadge(messagesBadge);
 
             var tabs = new List<CustomTabItem>
             {
-                new CustomTabItem("home", "H", () => new HomePage())
+                PrismCustomTabs.CreateTab<HomePage>(container, "home", "H", tab =>
                 {
-                    Title = "Home",
-                    TitleProvider = () => localizationService.Translate("Home"),
-                    AutomationId = "tab-home",
-                    AutomationName = "Home Tab"
-                },
-                new CustomTabItem("search", "S", () => new SearchPage())
+                    tab.Title = "Home";
+                    tab.TitleProvider = () => localizationService.Translate("Home");
+                    tab.AutomationId = "tab-home";
+                    tab.AutomationName = "Home Tab";
+                }),
+                PrismCustomTabs.CreateTab<SearchPage>(container, "search", "S", tab =>
                 {
-                    Title = "Search",
-                    TitleProvider = () => localizationService.Translate("Search"),
-                    AutomationId = "tab-search",
-                    AutomationName = "Search Tab"
-                },
-                new CustomTabItem("messages", "M", () => new MessagesPage(messagesBadge))
+                    tab.Title = "Search";
+                    tab.TitleProvider = () => localizationService.Translate("Search");
+                    tab.AutomationId = "tab-search";
+                    tab.AutomationName = "Search Tab";
+                }),
+                PrismCustomTabs.CreateTab<MessagesPage>(container, "messages", "M", tab =>
                 {
-                    Title = "Messages",
-                    TitleProvider = () => localizationService.Translate("Messages"),
-                    Badge = messagesBadge,
-                    AutomationId = "tab-messages",
-                    AutomationName = "Messages Tab"
-                },
-                new CustomTabItem("profile", "P", () => new ProfilePage())
+                    tab.Title = "Messages";
+                    tab.TitleProvider = () => localizationService.Translate("Messages");
+                    tab.Badge = messagesBadge;
+                    tab.AutomationId = "tab-messages";
+                    tab.AutomationName = "Messages Tab";
+                }),
+                PrismCustomTabs.CreateTab<ProfilePage>(container, "profile", "P", tab =>
                 {
-                    Title = "Profile",
-                    TitleProvider = () => localizationService.Translate("Profile"),
-                    AutomationId = "tab-profile",
-                    AutomationName = "Profile Tab"
-                },
-                new CustomTabItem("settings", "G", () => new SettingsPage(options, localizationService))
+                    tab.Title = "Profile";
+                    tab.TitleProvider = () => localizationService.Translate("Profile");
+                    tab.AutomationId = "tab-profile";
+                    tab.AutomationName = "Profile Tab";
+                }),
+                PrismCustomTabs.CreateTab<SettingsPage>(container, "settings", "G", tab =>
                 {
-                    Title = "Settings",
-                    TitleProvider = () => localizationService.Translate("Settings"),
-                    AutomationId = "tab-settings",
-                    AutomationName = "Settings Tab"
-                }
+                    tab.Title = "Settings";
+                    tab.TitleProvider = () => localizationService.Translate("Settings");
+                    tab.AutomationId = "tab-settings";
+                    tab.AutomationName = "Settings Tab";
+                })
             };
 
-            return new CustomTabsViewModel(tabs, "home", options);
+            return PrismCustomTabs.CreateViewModel(tabs, "home", options);
         }
         catch (Exception ex)
         {
@@ -170,14 +139,53 @@ public sealed class MainTabsPage : CustomTabsHostPage
         }
     }
 
-    private static SimpleLocalizationService ResolveLocalizationService()
+    private static void ConfigureOptions(CustomTabsOptions options)
     {
-        var services = Application.Current?.Handler?.MauiContext?.Services;
-        if (services == null)
+        if (_optionsConfigured)
         {
-            return new SimpleLocalizationService();
+            return;
         }
 
-        return services.GetService<SimpleLocalizationService>() ?? new SimpleLocalizationService();
+        _optionsConfigured = true;
+        options.BackgroundColor = Colors.DarkBlue;
+        options.PageBackgroundColor = Colors.Blue;
+        options.ContentBackgroundColor = Colors.Green;
+        options.AccentColor = Color.FromArgb("#E5E7EB");
+        options.SelectedIconColor = Color.FromArgb("#F9FAFB");
+        options.UnselectedIconColor = Color.FromArgb("#6B7280");
+        options.SelectedTextColor = Color.FromArgb("#F9FAFB");
+        options.UnselectedTextColor = Color.FromArgb("#9CA3AF");
+        options.ShowText = true;
+        options.EnableAnimations = true;
+        options.EnableHaptics = false;
+        options.TabBarHeight = 52;
+        options.TabBarPadding = new Thickness(8, 4, 8, 6);
+        options.IconSize = 22;
+        options.TextSize = 11;
+        options.TabLayoutMode = TabLayoutMode.Fixed;
+        options.ScrollableThreshold = int.MaxValue;
+        options.BorderColor = Color.FromArgb("#374151");
+        options.BorderThickness = 1;
+        options.UnderlineMargin = new Thickness(0, 6, 0, 0);
+        options.ReselectBehavior = TabReselectBehavior.PopToRoot | TabReselectBehavior.ScrollToTop;
+        options.VisualStyle = TabVisualStyle.ClassicBottom;
+
+        if (DeviceInfo.Platform == DevicePlatform.Android)
+        {
+            options.BadgeOffsetY = 0;
+        }
+    }
+
+    private static void ConfigureBadge(CustomTabBadge badge)
+    {
+        if (_badgeConfigured)
+        {
+            return;
+        }
+
+        _badgeConfigured = true;
+        badge.Count = 2;
+        badge.BackgroundColor = Colors.Red;
+        badge.TextColor = Colors.White;
     }
 }

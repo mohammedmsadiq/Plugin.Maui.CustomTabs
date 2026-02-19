@@ -1,5 +1,3 @@
-using CustomTabs.Sample.Services;
-
 namespace CustomTabs.Sample.Pages;
 
 /// <summary>
@@ -8,19 +6,10 @@ namespace CustomTabs.Sample.Pages;
 public partial class DetailPage : ContentPage
 {
     /// <summary>
-    /// Creates a detail page with the provided title.
+    /// Creates the detail page.
     /// </summary>
-    public DetailPage(string title)
+    public DetailPage()
     {
         InitializeComponent();
-        Title = title;
-        DetailLabel.Text = title;
-    }
-
-    private async void OnPopClicked(object sender, EventArgs e)
-    {
-        await SafeExecution.RunAsync(
-            () => Navigation.PopAsync(),
-            "DetailPage.OnPopClicked");
     }
 }

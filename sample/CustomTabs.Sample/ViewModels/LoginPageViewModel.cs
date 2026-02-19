@@ -35,7 +35,7 @@ public sealed class LoginPageViewModel : BindableBase
         return SafeExecution.RunAsync(async () =>
         {
             _authService.SetLoggedIn(true);
-            await _navigationService.NavigateAsync("/MainTabsPage");
+            await _navigationService.NavigateAsync("/NavigationPage/MainTabsPage");
         }, "LoginPageViewModel.SignInCommand");
     }
 

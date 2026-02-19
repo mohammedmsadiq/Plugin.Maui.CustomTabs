@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:prism="http://prismlibrary.com"
+             prism:ViewModelLocator.AutowireViewModel="Automatic"
+             x:Class="CustomTabs.Prism.Sample.Pages.SettingsPage"
+             Title="Settings"
+             BackgroundColor="#0F172A">
+    <ScrollView>
+        <VerticalStackLayout Padding="24" Spacing="16">
+            <Label Text="Settings"
+                   TextColor="#F8FAFC"
+                   FontSize="28"
+                   FontAttributes="Bold" />
+
+            <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto">
+                <Label Text="Show text labels"
+                       TextColor="#F8FAFC"
+                       VerticalOptions="Center" />
+                <Switch Grid.Column="1" IsToggled="{Binding Options.ShowText}" />
+            </Grid>
+            <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto">
+                <Label Text="Enable animations"
+                       TextColor="#F8FAFC"
+                       VerticalOptions="Center" />
+                <Switch Grid.Column="1" IsToggled="{Binding Options.EnableAnimations}" />
+            </Grid>
+            <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto">
+                <Label Text="Show underline"
+                       TextColor="#F8FAFC"
+                       VerticalOptions="Center" />
+                <Switch Grid.Column="1" IsToggled="{Binding Options.ShowUnderline}" />
+            </Grid>
+
+            <Button Text="Push details" Command="{Binding PushDetailsCommand}" />
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

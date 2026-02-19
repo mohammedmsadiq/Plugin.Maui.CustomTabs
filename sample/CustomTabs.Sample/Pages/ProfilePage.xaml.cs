@@ -1,5 +1,3 @@
-using CustomTabs.Sample.Services;
-
 namespace CustomTabs.Sample.Pages;
 
 /// <summary>
@@ -15,10 +13,4 @@ public partial class ProfilePage : ContentPage
         InitializeComponent();
     }
 
-    private async void OnPushDetailsClicked(object sender, EventArgs e)
-    {
-        await SafeExecution.RunAsync(
-            () => Navigation.PushAsync(new DetailPage("Profile details")),
-            "ProfilePage.OnPushDetailsClicked");
-    }
 }

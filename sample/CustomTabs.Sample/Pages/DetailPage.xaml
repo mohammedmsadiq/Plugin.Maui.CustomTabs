@@ -1,15 +1,19 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             x:Class="CustomTabs.Sample.Pages.DetailPage">
+             xmlns:prism="http://prismlibrary.com"
+             prism:ViewModelLocator.AutowireViewModel="Automatic"
+             x:Class="CustomTabs.Sample.Pages.DetailPage"
+             Title="{Binding Title}">
     <VerticalStackLayout Padding="24" Spacing="12">
         <Label x:Name="DetailLabel"
                AutomationId="detail-title"
                FontSize="22"
-               FontAttributes="Bold" />
+               FontAttributes="Bold"
+               Text="{Binding Title}" />
         <Label Text="This page is pushed onto the current tab's navigation stack." />
         <Button Text="Pop back"
                 AutomationId="detail-pop-back"
-                Clicked="OnPopClicked" />
+                Command="{Binding GoBackCommand}" />
     </VerticalStackLayout>
 </ContentPage>

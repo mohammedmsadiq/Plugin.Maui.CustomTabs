@@ -74,51 +74,54 @@ public partial class App : Application
 
 ## Starter guide (with Prism)
 
-If your app uses Prism, the pattern is slightly different:
+If your app uses Prism, you can keep full DI + navigation by resolving tab pages from the Prism container. The sample uses the small helper project below.
 
-1. Create a `CustomTabsHostPage` subclass.
-2. Build a `CustomTabsViewModel` in the page constructor.
-3. Register the page for navigation.
-4. Navigate to the page using Prism navigation (with a `NavigationPage` if you want a nav bar / `TitleView`).
+Sample: `sample/CustomTabs.Prism.Sample`
+
+1. Add a reference to `src/Plugin.Maui.CustomTabs.Prism/Plugin.Maui.CustomTabs.Prism.csproj`.
+2. Register all pages for navigation.
+3. Build tabs via `PrismCustomTabs.CreateTab(...)` so each tab root is container-resolved and hosted in a `PrismNavigationPage`.
+4. Navigate to the tabs page using Prism navigation.
 
 ```csharp
 using Plugin.Maui.CustomTabs.Models;
 using Plugin.Maui.CustomTabs.Pages;
+using Plugin.Maui.CustomTabs.Prism;
 using Plugin.Maui.CustomTabs.ViewModels;
+using Prism.Ioc;
 
 public sealed class MainTabsPage : CustomTabsHostPage
 {
-    public MainTabsPage(SimpleLocalizationService localization)
-        : base(CreateViewModel(localization), localization)
+    public MainTabsPage(IContainerProvider container, SimpleLocalizationService localization, CustomTabsOptions options)
+        : base(CreateViewModel(container, localization, options), localization)
     {
         Title = "Custom Tabs";
         NavigationPage.SetHasNavigationBar(this, true);
         NavigationPage.SetTitleView(this, new Label { Text = "Custom Tabs" });
     }
 
-    private static CustomTabsViewModel CreateViewModel(SimpleLocalizationService localization)
+    private static CustomTabsViewModel CreateViewModel(
+        IContainerProvider container,
+        SimpleLocalizationService localization,
+        CustomTabsOptions options)
     {
-        var options = new CustomTabsOptions
-        {
-            BackgroundColor = Colors.White,
-            AccentColor = Colors.Gray,
-            SelectedTextColor = Colors.Black,
-            UnselectedTextColor = Colors.Gray,
-            SelectedIconColor = Colors.Black,
-            UnselectedIconColor = Colors.Gray
-        };
-
         var tabs = new List<CustomTabItem>
         {
-            new CustomTabItem("home", "H", () => new HomePage())
-            { TitleProvider = () => localization.Translate("Home") },
-            new CustomTabItem("search", "S", () => new SearchPage())
-            { TitleProvider = () => localization.Translate("Search") },
-            new CustomTabItem("settings", "G", () => new SettingsPage())
-            { TitleProvider = () => localization.Translate("Settings") }
+            PrismCustomTabs.CreateTab<HomePage>(container, "home", "H", tab =>
+            {
+                tab.TitleProvider = () => localization.Translate("Home");
+            }),
+            PrismCustomTabs.CreateTab<SearchPage>(container, "search", "S", tab =>
+            {
+                tab.TitleProvider = () => localization.Translate("Search");
+            }),
+            PrismCustomTabs.CreateTab<SettingsPage>(container, "settings", "G", tab =>
+            {
+                tab.TitleProvider = () => localization.Translate("Settings");
+            })
         };
 
-        return new CustomTabsViewModel(tabs, "home", options);
+        return PrismCustomTabs.CreateViewModel(tabs, "home", options);
     }
 }
 ```
@@ -126,10 +129,23 @@ public sealed class MainTabsPage : CustomTabsHostPage
 ```csharp
 // Prism registration
 prism.RegisterForNavigation<MainTabsPage>();
+prism.RegisterForNavigation<HomePage, HomePageViewModel>();
+prism.RegisterForNavigation<SearchPage, SearchPageViewModel>();
+prism.RegisterForNavigation<SettingsPage, SettingsPageViewModel>();
 
 // Navigate after splash/auth (wrap in NavigationPage to show nav bar / TitleView)
 await NavigationService.NavigateAsync("/NavigationPage/MainTabsPage");
 ```
+
+### Tab selection (Prism)
+
+Prism exposes `SelectTabAsync`. The sample wires this in the Home page to demonstrate tab switching:
+
+```csharp
+await _navigationService.SelectTabAsync("messages");
+```
+
+If `SelectTabAsync` can’t resolve a tab (because custom tabs are not a `TabbedPage`), you can fall back to `CustomTabsHostPage.SelectedTabKey` directly.
 
 ## Safe area + layout notes
 

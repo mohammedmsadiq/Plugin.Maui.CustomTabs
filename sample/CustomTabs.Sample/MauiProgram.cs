@@ -9,6 +9,7 @@ using Microsoft.Maui.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Plugin.Maui.CustomTabs.Extensions;
 using Plugin.Maui.CustomTabs.Services;
+using Plugin.Maui.CustomTabs.Models;
 using Prism;
 using Prism.Ioc;
 
@@ -40,46 +41,23 @@ public static class MauiProgram
                 Debug.WriteLine("[Sample] RegisterTypes starting.");
                 container.RegisterSingleton<SimpleLocalizationService>();
                 container.RegisterSingleton<IDemoAuthService, DemoAuthService>();
+                container.RegisterSingleton<CustomTabsOptions>();
+                container.RegisterSingleton<CustomTabBadge>();
 
                 container.RegisterForNavigation<SplashPage, SplashPageViewModel>();
                 container.RegisterForNavigation<LoginPage, LoginPageViewModel>();
+                container.RegisterForNavigation<HomePage, HomePageViewModel>();
+                container.RegisterForNavigation<SearchPage, SearchPageViewModel>();
+                container.RegisterForNavigation<MessagesPage, MessagesPageViewModel>();
+                container.RegisterForNavigation<ProfilePage, ProfilePageViewModel>();
+                container.RegisterForNavigation<SettingsPage, SettingsPageViewModel>();
+                container.RegisterForNavigation<DetailPage, DetailPageViewModel>();
                 container.RegisterForNavigation<MainTabsPage>();
                 Debug.WriteLine("[Sample] RegisterTypes complete.");
             })
-            .CreateWindow(async (container, navigation) =>
+            .OnInitialized(() =>
             {
-                Debug.WriteLine("[Sample] Prism CreateWindow invoked.");
-                // Keep startup deterministic: land directly on tabs.
-                // Splash remains registered for manual/testing navigation.
-                var result = await navigation.NavigateAsync("/NavigationPage/MainTabsPage");
-                if (!result.Success)
-                {
-                    SafeExecution.Run(() =>
-                    {
-                        System.Diagnostics.Debug.WriteLine(result.Exception);
-                        var errorPage = new ContentPage
-                        {
-                            Content = new ScrollView
-                            {
-                                Content = new Label
-                                {
-                                    Text = result.Exception?.ToString() ?? "Navigation failed.",
-                                    Margin = new Thickness(24)
-                                }
-                            }
-                        };
-
-                        var window = Application.Current?.Windows.FirstOrDefault();
-                        if (window != null)
-                        {
-                            window.Page = errorPage;
-                        }
-                    }, "MauiProgram.CreateWindow.NavigationFailureFallback");
-                }
-                else
-                {
-                    Debug.WriteLine("[Sample] Initial navigation succeeded.");
-                }
+                Debug.WriteLine("[Sample] Prism initialized.");
             });
         });
 

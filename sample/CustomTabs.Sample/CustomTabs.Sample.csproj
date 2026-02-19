@@ -34,5 +34,6 @@
     <PackageReference Include="Prism.Maui" Version="9.0.537" />
     <PackageReference Include="Prism.DryIoc.Maui" Version="9.0.537" />
     <ProjectReference Include="../../src/Plugin.Maui.CustomTabs/Plugin.Maui.CustomTabs.csproj" />
+    <ProjectReference Include="../../src/Plugin.Maui.CustomTabs.Prism/Plugin.Maui.CustomTabs.Prism.csproj" />
   </ItemGroup>
 </Project>

@@ -44,8 +44,8 @@ public sealed class SplashPageViewModel : BindableBase, IInitializeAsync
             var isLoggedIn = await _authService.IsLoggedInAsync();
             Debug.WriteLine($"[Sample] Auth status: {isLoggedIn} (before demo override).");
             isLoggedIn = true; // FOR DEMO PURPOSES ONLY
-            // var target = isLoggedIn ? "/MainTabsPage" : "/NavigationPage/LoginPage";
-            var target = "/MainTabsPage";
+            // var target = isLoggedIn ? "/NavigationPage/MainTabsPage" : "/NavigationPage/LoginPage";
+            var target = "/NavigationPage/MainTabsPage";
             Debug.WriteLine($"[Sample] Navigating to {target}.");
 
             // Prism is still completing the splash navigation pipeline here.
