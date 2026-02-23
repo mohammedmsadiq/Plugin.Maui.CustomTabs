@@ -542,19 +542,21 @@ public partial class CustomTabBarView : ContentView
         {
             if (style == TabVisualStyle.TopUnderline)
             {
+                var topPadding = Math.Max(EffectiveTabBarPadding.Top, safeInsets.Top);
                 EffectiveTabBarPadding = new Thickness(
                     EffectiveTabBarPadding.Left,
-                    EffectiveTabBarPadding.Top + safeInsets.Top,
+                    topPadding,
                     EffectiveTabBarPadding.Right,
                     EffectiveTabBarPadding.Bottom);
             }
             else
             {
+                var bottomPadding = Math.Max(EffectiveTabBarPadding.Bottom, safeInsets.Bottom);
                 EffectiveTabBarPadding = new Thickness(
                     EffectiveTabBarPadding.Left,
                     EffectiveTabBarPadding.Top,
                     EffectiveTabBarPadding.Right,
-                    EffectiveTabBarPadding.Bottom + safeInsets.Bottom);
+                    bottomPadding);
             }
         }
 

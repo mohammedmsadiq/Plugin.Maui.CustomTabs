@@ -67,7 +67,7 @@ public sealed class MainTabsPage : CustomTabsHostPage
         options.SelectedTextColor = Color.FromArgb("#F8FAFC");
         options.UnselectedTextColor = Color.FromArgb("#94A3B8");
         options.TabBarHeight = 56;
-        options.TabBarPadding = new Thickness(8, 6, 8, 10);
+        options.TabBarPadding = new Thickness(0, 6, 0, 0);
         options.IconSize = 22;
         options.TextSize = 11;
         options.TabLayoutMode = TabLayoutMode.Fixed;

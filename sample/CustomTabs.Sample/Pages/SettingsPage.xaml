@@ -47,6 +47,12 @@
                 <Switch Grid.Column="1" IsToggled="{Binding Options.RespectSafeArea}" />
             </Grid>
             <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto">
+                <Label Text="Respect bottom safe area"
+                       TextColor="#F9FAFB"
+                       VerticalOptions="Center" />
+                <Switch Grid.Column="1" IsToggled="{Binding Options.RespectBottomSafeArea}" />
+            </Grid>
+            <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto">
                 <Label Text="Keyboard navigation"
                        TextColor="#F9FAFB"
                        VerticalOptions="Center" />

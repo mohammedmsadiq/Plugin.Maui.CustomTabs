@@ -28,6 +28,7 @@ public sealed class CustomTabsOptions : INotifyPropertyChanged
     private TabSelectionAnimationStyle _indicatorAnimationStyle = TabSelectionAnimationStyle.Scale;
     private string? _fontFamily;
     private bool _respectSafeArea = true;
+    private bool _respectBottomSafeArea = true;
     private double _iconSize = 26;
     private double _textSize = 12;
     private Thickness _tabBarPadding = new Thickness(0, 10, 0, 16);
@@ -243,6 +244,15 @@ public sealed class CustomTabsOptions : INotifyPropertyChanged
     {
         get => _respectSafeArea;
         set => SetProperty(ref _respectSafeArea, value);
+    }
+
+    /// <summary>
+    /// Controls whether the bottom safe area inset is applied when <see cref="RespectSafeArea"/> is enabled.
+    /// </summary>
+    public bool RespectBottomSafeArea
+    {
+        get => _respectBottomSafeArea;
+        set => SetProperty(ref _respectBottomSafeArea, value);
     }
 
     /// <summary>

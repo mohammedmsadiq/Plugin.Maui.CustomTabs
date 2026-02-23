@@ -173,6 +173,7 @@ If `SelectTabAsync` can’t resolve a tab (because custom tabs are not a `Tabbed
 | `IndicatorAnimationStyle` | `TabSelectionAnimationStyle` | `Scale` | Indicator animation style. |
 | `FontFamily` | `string?` | `null` | Optional icon/text font family. |
 | `RespectSafeArea` | `bool` | `true` on iOS | Keeps the bar above safe area. |
+| `RespectBottomSafeArea` | `bool` | `true` | Applies the bottom safe area inset when `RespectSafeArea` is enabled. |
 | `IconSize` | `double` | `26` | Icon size in device units. |
 | `TextSize` | `double` | `12` | Label size in device units. |
 | `TabBarPadding` | `Thickness` | `0,10,0,16` | Inner padding of the tab bar. |

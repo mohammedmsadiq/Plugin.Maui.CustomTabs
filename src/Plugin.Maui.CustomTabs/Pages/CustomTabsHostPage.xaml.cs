@@ -357,6 +357,7 @@ public partial class CustomTabsHostPage : ContentPage
     private void OnOptionsPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
     {
         if (e.PropertyName == nameof(CustomTabsOptions.RespectSafeArea)
+            || e.PropertyName == nameof(CustomTabsOptions.RespectBottomSafeArea)
             || e.PropertyName == nameof(CustomTabsOptions.VisualStyle))
         {
             ApplyTabBarPlacement();
@@ -495,17 +496,18 @@ public partial class CustomTabsHostPage : ContentPage
 
         var insets = GetPlatformSafeAreaPadding();
         var isTop = viewModel.Options.VisualStyle == TabVisualStyle.TopUnderline;
+        var respectBottom = viewModel.Options.RespectBottomSafeArea;
 
         tabBarHost.Padding = new Thickness(insets.Left, 0, insets.Right, 0);
         contentHost.Padding = isTop
-            ? new Thickness(insets.Left, 0, insets.Right, insets.Bottom)
+            ? new Thickness(insets.Left, 0, insets.Right, respectBottom ? insets.Bottom : 0)
             : new Thickness(insets.Left, 0, insets.Right, 0);
 
         if (tabBar != null)
         {
             tabBar.SafeAreaInsets = isTop
                 ? new Thickness(0, insets.Top, 0, 0)
-                : new Thickness(0, 0, 0, insets.Bottom);
+                : new Thickness(0, 0, 0, respectBottom ? insets.Bottom : 0);
         }
 
         if (DeviceInfo.Platform == DevicePlatform.iOS)

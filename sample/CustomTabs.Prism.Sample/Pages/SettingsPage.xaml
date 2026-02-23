@@ -31,6 +31,18 @@
                        VerticalOptions="Center" />
                 <Switch Grid.Column="1" IsToggled="{Binding Options.ShowUnderline}" />
             </Grid>
+            <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto">
+                <Label Text="Respect safe area"
+                       TextColor="#F8FAFC"
+                       VerticalOptions="Center" />
+                <Switch Grid.Column="1" IsToggled="{Binding Options.RespectSafeArea}" />
+            </Grid>
+            <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto">
+                <Label Text="Respect bottom safe area"
+                       TextColor="#F8FAFC"
+                       VerticalOptions="Center" />
+                <Switch Grid.Column="1" IsToggled="{Binding Options.RespectBottomSafeArea}" />
+            </Grid>
 
             <Button Text="Push details" Command="{Binding PushDetailsCommand}" />
         </VerticalStackLayout>
